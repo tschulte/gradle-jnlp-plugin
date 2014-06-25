@@ -1,0 +1,16 @@
+// Handles publication of distributions to Bintray
+
+apply plugin: 'bintray'
+
+bintray {
+    user = bintrayUsername
+    key = bintrayKey
+    publications = ['mavenJava']
+    pkg {
+        repo = 'tschulte'
+        name = 'gradle-jnlp-plugin'
+        desc = 'Gradle plugin to generate webstart and applet jnlp files'
+        licenses = ['Apache-2.0']
+        labels = []
+    }
+}

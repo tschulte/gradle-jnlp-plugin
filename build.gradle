@@ -1,0 +1,25 @@
+apply from: 'gradle/credentials.gradle'
+apply from: 'gradle/compile.gradle'
+apply from: 'gradle/publishing.gradle'
+apply from: 'gradle/bintray.gradle'
+apply from: 'gradle/artifactory.gradle'
+apply plugin: 'release'
+
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.3'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:2.2.4'
+        classpath 'com.github.townsfolk:gradle-release:1.2'
+    }
+}
+
+dependencies {
+    compile localGroovy()
+    compile gradleApi()
+}
+
+tasks.release.finalizedBy artifactoryPublish, bintrayUpload
