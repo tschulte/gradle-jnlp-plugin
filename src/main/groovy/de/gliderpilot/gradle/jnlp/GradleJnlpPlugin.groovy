@@ -8,5 +8,6 @@ import org.gradle.api.Project
  */
 class GradleJnlpPlugin implements Plugin<Project> {
     void apply(Project project) {
+        project.extensions.create('jnlp', GradleJnlpPluginExtension, this)
     }
 }

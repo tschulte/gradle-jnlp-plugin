@@ -16,4 +16,4 @@ include 'api'
 include 'services:webservice'
 */
 
-rootProject.name = 'de.gliderpilot.gradle.jnlp'
+rootProject.name = 'gradle-jnlp-plugin'

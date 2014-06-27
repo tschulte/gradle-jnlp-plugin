@@ -20,6 +20,10 @@ buildscript {
 dependencies {
     compile localGroovy()
     compile gradleApi()
+	compile 'org.codehaus.gpars:gpars:1.2.1'
+	testCompile 'org.spockframework:spock-core:0.7-groovy-1.8', {
+		exclude module: 'groovy-all'
+	}
 }
 
 tasks.release.finalizedBy artifactoryPublish, bintrayUpload
