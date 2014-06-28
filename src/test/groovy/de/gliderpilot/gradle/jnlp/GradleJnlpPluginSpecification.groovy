@@ -7,16 +7,16 @@ import org.junit.Test
 import spock.lang.Specification
 
 
-class GradleJnlpPluginTest extends Specification {
+class GradleJnlpPluginSpecification extends Specification {
 
     def "plugin can be applied"() {
 		given:
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'de.gliderpilot.jnlp'
-		
+
 		expect:
 		project.plugins.hasPlugin('de.gliderpilot.jnlp')
-		
+
 		and:
 		project.plugins['de.gliderpilot.jnlp'].class == GradleJnlpPlugin
     }
