@@ -9,7 +9,7 @@ import java.util.jar.JarOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
-import org.gradle.api.java.archives.Manifest
+import org.gradle.api.java.archives.Manifest as GradleManifest
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -17,6 +17,8 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+
+import java.util.jar.Manifest as JUJManifest
 
 
 class SignJarsTask extends DefaultTask {
@@ -29,7 +31,7 @@ class SignJarsTask extends DefaultTask {
 
     @Optional
     @Input
-    Manifest manifest
+    GradleManifest manifest
 
     @Optional
     @InputFile
@@ -59,7 +61,7 @@ class SignJarsTask extends DefaultTask {
         }
     }
 
-    void manifest(Manifest manifest) {
+    void manifest(GradleManifest manifest) {
         this.manifest.from manifest
     }
 
@@ -86,24 +88,23 @@ class SignJarsTask extends DefaultTask {
     }
 
     private File copyUnsignAndAlterManifest(File input) {
-        input.withInputStream { is ->
-            new JarInputStream(is).withStream { jis ->
-                java.util.jar.Manifest manifest = jis.manifest
-                this.attributes.each { key, value ->
-                    manifest.attributes.putValue(key, value)
-                }
-                File output = new File(into, input.name)
-                output.withOutputStream { os ->
-                    new JarOutputStream(os, manifest).withStream { jos ->
-                        JarEntry entry = null
-                        while((entry = jis.nextEntry) != null) {
-                            if (entry.name ==~ /(?i)\/META-INF\/.*\.(?DSA|SF|RSA)/)
-                                continue
-                            jos.putNextEntry(new JarEntry(entry.name))
-                            jos << jis
-                            jos.closeEntry()
-                        }
-                    }
+        new JarInputStream(input.newInputStream()).withStream { is ->
+            JUJManifest manifest = is.manifest ?: new JUJManifest()
+            // ensure either Manifest-Version or Signature-Version is set, otherwise the manifest will not be written
+            if (!manifest.mainAttributes.getValue('Manifest-Version') && !manifest.mainAttributes.getValue('Signature-Version'))
+                manifest.mainAttributes.putValue('Manifest-Version', '1.0')
+            this.attributes.each { key, value ->
+                manifest.mainAttributes.putValue(key, value)
+            }
+            File output = new File(into, input.name)
+            new JarOutputStream(output.newOutputStream(), manifest).withStream { os ->
+                JarEntry entry = null
+                while((entry = is.nextEntry) != null) {
+                    if (entry.name ==~ '(?i)META-INF/.*[.](?:DSA|SF|RSA)')
+                        continue
+                    os.putNextEntry(new JarEntry(entry.name))
+                    os << is
+                    os.closeEntry()
                 }
             }
         }
