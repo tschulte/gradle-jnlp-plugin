@@ -2,7 +2,7 @@ package de.gliderpilot.gradle.jnlp
 
 import spock.lang.Shared
 
-class JnlpIntegrationSpecification extends AbstractPluginSpecification {
+class JnlpWithVersionsIntegrationSpecification extends AbstractPluginSpecification {
 
     @Shared
     def jnlp
@@ -21,6 +21,10 @@ class JnlpIntegrationSpecification extends AbstractPluginSpecification {
                 }
             }
 
+            jnlp {
+                useVersions = true
+            }
+
             version = '1.0'
 
             repositories {
@@ -30,11 +34,11 @@ class JnlpIntegrationSpecification extends AbstractPluginSpecification {
                 compile 'org.codehaus.groovy:groovy-all:2.3.1'
             }
             mainClassName = 'de.gliderpilot.jnlp.test.Main'
-        """
+        """.stripIndent()
 
         project.settingsFile << """\
             rootProject.name = 'test'
-        """
+        """.stripIndent()
         project.file('src/main/groovy/de/gliderpilot/jnlp/test').mkdirs()
         project.file('src/main/groovy/de/gliderpilot/jnlp/test/Main.groovy') << """\
             package de.gliderpilot.jnlp.test
@@ -43,9 +47,8 @@ class JnlpIntegrationSpecification extends AbstractPluginSpecification {
                     println "test"
                 }
             }
-        """
-        project.run ':generateJnlp'
-        project.run ':copyJars'
+        """.stripIndent()
+        project.run ':generateJnlp', ':copyJars', ':generateVersionXml'
         def jnlpFile = project.file('build/tmp/jnlp/launch.jnlp')
         jnlp = new XmlSlurper().parse(jnlpFile)
     }
@@ -57,7 +60,7 @@ class JnlpIntegrationSpecification extends AbstractPluginSpecification {
 
     def 'copyJars task is executed'() {
         expect:
-            project.wasExecuted(':copyJars')
+        project.wasExecuted(':copyJars')
     }
 
     def 'jars entry is not empty'() {
@@ -66,6 +69,12 @@ class JnlpIntegrationSpecification extends AbstractPluginSpecification {
 
         then:
         !jars.isEmpty()
+    }
+
+    def 'mandatory fields in information block are filled in the jnlp'() {
+        expect:
+        jnlp.information.title.text() == project.name
+        jnlp.information.vendor.text() == project.name
     }
 
     def 'attributes for #artifact are correct'() {
@@ -92,6 +101,9 @@ class JnlpIntegrationSpecification extends AbstractPluginSpecification {
 
     def 'jars are copied'() {
         expect:
-        project.file('build/tmp/jnlp/lib').listFiles() == []
+        project.file('build/tmp/jnlp/lib').list { file, name -> name.endsWith '.jar' }.sort() == [
+            'groovy-all__V2.3.1.jar',
+            'test__V1.0.jar'
+        ]
     }
 }

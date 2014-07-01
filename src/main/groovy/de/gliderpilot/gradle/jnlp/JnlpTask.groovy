@@ -14,20 +14,28 @@ class JnlpTask extends DefaultTask {
 
     @TaskAction
     void generateJnlp() {
-        MarkupBuilder xml = new MarkupBuilder(output.newPrintWriter())
+        MarkupBuilder xml = new MarkupBuilder(output.newPrintWriter('UTF-8'))
         def extension = project.jnlp
         xml.jnlp(extension.jnlpParams) {
-            if (extension.withXmlClosure)
+            if (extension.withXmlClosure) {
                 delegate.with extension.withXmlClosure
-            resources {
+            }
+            xml.resources {
                 j2se(version: project.targetCompatibility)
-                jar(href: "lib/${project.name}.jar", version: "${project.version}", main: 'true')
+                jar(jarParams(project.name, project.version) + [main: 'true'])
                 def resolvedJars = project.configurations.runtime.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
                 resolvedJars.each { ResolvedArtifact artifact ->
-                    jar(href: "lib/${artifact.name}.jar", version: "${artifact.moduleVersion.id.version}")
+                    jar(jarParams(artifact.name, artifact.moduleVersion.id.version))
                 }
             }
             'application-desc'('main-class': "${project.mainClassName}")
         }
+    }
+
+    Map<String, String> jarParams(String name, String version) {
+        if (project.jnlp.useVersions)
+            [href: "lib/${name}.jar", version: "${version}"]
+        else
+            [href: "lib/${name}__V${version}.jar"]
     }
 }

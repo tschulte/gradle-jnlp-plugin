@@ -10,15 +10,24 @@ class GradleJnlpPluginExtension {
 
     private GradleJnlpPlugin plugin
 
-    Map<String, String> jnlpParams = [spec: '7.0']
+    boolean useVersions
+
+    Map<String, String> jnlpParams = [spec: '7.0', href: 'launch.jnlp']
 
     Closure withXmlClosure
 
     @Inject
     GradleJnlpPluginExtension(GradleJnlpPlugin plugin, Project project) {
         this.plugin = plugin
-        if (project.version != 'unspecified')
+        if (project.version != 'unspecified') {
             jnlpParams.version = project.version
+        }
+        withXmlClosure = {
+            information {
+                title project.name
+                vendor project.group ?: project.name
+            }
+        }
     }
 
     void href(String href) {
@@ -33,4 +42,7 @@ class GradleJnlpPluginExtension {
         jnlpParams.spec = spec
     }
 
+    void withXml(Closure closure) {
+        withXmlClosure = closure
+    }
 }

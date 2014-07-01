@@ -40,6 +40,7 @@ class IntegrationTestProject {
             } as ProgressListener)
             buildLauncher.forTasks(args).run()
         } finally {
+            println executedTasks
             connection.close()
         }
     }
