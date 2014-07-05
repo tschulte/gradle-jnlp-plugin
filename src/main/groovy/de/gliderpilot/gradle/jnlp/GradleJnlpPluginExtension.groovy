@@ -25,6 +25,10 @@ class GradleJnlpPluginExtension {
     Map<String, String> jnlpParams = [spec: '7.0', href: 'launch.jnlp']
     Map<String, String> j2seParams
 
+    Map<String, String> signJarParams = [:]
+    Map<String, String> signJarAddedManifestEntries
+    List<String> signJarRemovedManifestEntries = ['Trusted-Only', 'Trusted-Library']
+
     Closure withXmlClosure
 
     @Inject
@@ -34,6 +38,11 @@ class GradleJnlpPluginExtension {
         if (project.version != 'unspecified') {
             jnlpParams.version = project.version
         }
+        signJarAddedManifestEntries = [
+            'Codebase': '*',
+            'Permissions': 'all-permissions',
+            'Application-Name': "${project.name}"
+        ]
         withXmlClosure = {
             information {
                 title project.name

@@ -57,13 +57,6 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
         jnlp = new XmlSlurper().parse(jnlpFile)
     }
 
-    def cleanupSpec() {
-        project.copy {
-            from project.file("build/tmp/jnlp/")
-            into '/tmp/'
-        }
-    }
-
     def 'jars entry is not empty'() {
         when:
         def jars = jnlp.resources.jar

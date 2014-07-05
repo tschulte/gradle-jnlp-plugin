@@ -7,22 +7,16 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
-class CopyJarsTask extends DefaultTask {
+class CopyJarsTask extends AbstractCopyJarsTask {
 
-    @InputFiles
-    Configuration from
-
-    @OutputDirectory
-    File into
 
     @TaskAction
     void copy() {
-        def resolvedJars = from.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
-        resolvedJars.each { ResolvedArtifact artifact ->
-            project.copy {
-                from artifact.file
-                into into
-                rename { "${artifact.name}__V${artifact.moduleVersion.id.version}.jar" }
+        project.copy {
+            from from
+            into into
+            rename { String fileName ->
+                newName(fileName)
             }
         }
     }

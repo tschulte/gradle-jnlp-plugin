@@ -17,8 +17,17 @@ class GradleJnlpPlugin implements Plugin<Project> {
             output new File(project.buildDir, 'tmp/jnlp/launch.jnlp')
         }
         project.tasks.create('copyJars', CopyJarsTask) {
+            onlyIf { !project.jnlp.signJarParams }
             from = project.configurations.jnlp
             into new File(project.buildDir, 'tmp/jnlp/lib')
+        }
+        project.tasks.create('signJars', SignJarsTask) {
+            onlyIf { project.jnlp.signJarParams }
+            from = project.configurations.jnlp
+            into new File(project.buildDir, 'tmp/jnlp/lib')
+        }
+        project.tasks.create('createWebstartDir') {
+            dependsOn 'generateJnlp', 'copyJars', 'signJars'
         }
         project.plugins.withId('java') {
             // if plugin java is applied use the runtime configuration
@@ -26,10 +35,5 @@ class GradleJnlpPlugin implements Plugin<Project> {
             // plus the project itself
             project.dependencies.jnlp project
         }
-        /*        project.tasks.create('signJars', SignJarsTask) {
-         dependsOn project.copyJars
-         from project.fileTree(new File(project.buildDir, 'tmp/jnlp/lib'))
-         }
-         */
     }
 }
