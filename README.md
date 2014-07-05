@@ -1,38 +1,55 @@
-Gradle Plugin Project template
-------------------------------
+Gradle plugin to create webstart files
+--------------------------------------
 
-You've just created a basic Gradle plugin project
+To use in a griffon 2 application:
 
-The project's structure is laid out as follows
+cd gradle-jnlp-plugin
 
-    <proj>
-      |
-      +- src
-          |
-          +- main
-              |
-              +- groovy
-              |
-                 // plugin sources
-              |
-              +- resources
-              |
-                 // plugin resources
-          +- test
-              |
-              +- groovy
-              |
-                 // plugin tests
+./gradlew publishToMavenLocal
 
-Execute the following command to compile and package the project
+cd griffon-app
 
-    ./gradlew build
+add
 
-Execute the following command to deploy to Artifactory
+```groovy
+buildscript {
+    repositories {
+        mavenLocal()
+    }
 
-    ./gradlew artifactoryPublish
+    dependencies {
+        classpath 'de.gliderpilot.gradle.jnlp:gradle-jnlp-plugin:+'
+        classpath 'org.codehaus.gpars:gpars:1.2.1'
+    }
+}
 
-Execute the following command to deploy to Bintray
+apply plugin: 'de.gliderpilot.jnlp'
 
-    ./gradlew bintrayUpload
+jnlp {
+    useVersions = true
+    withXml {
+        information {
+            title project.name
+            vendor project.group ?: project.name
+        }
+        security {
+            'all-permissions'()
+        }
+    }
+    signJarParams = [alias: 'myalias', storepass: 'mystorepass']
+}
 
+task genkey << {
+    ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US')
+}
+
+```
+to your build.gradle
+
+execute
+
+./gradlew genkey
+
+./gradlew createWebstart
+
+javaws build/tmp/jnlp/launch.jnlp (you must first set your java security settings to medium, or use a real certificate)
