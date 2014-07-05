@@ -23,6 +23,7 @@ class GradleJnlpPlugin implements Plugin<Project> {
             project.configurations.jnlp.extendsFrom project.configurations.runtime
             // plus the project itself
             project.dependencies.jnlp project
+            project.tasks.generateJnlp.dependsOn project.tasks.jar
             project.tasks.copyJars.dependsOn project.tasks.jar
         }
         /*        project.tasks.create('signJars', SignJarsTask) {

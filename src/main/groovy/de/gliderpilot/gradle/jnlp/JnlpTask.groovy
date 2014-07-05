@@ -1,5 +1,6 @@
 package de.gliderpilot.gradle.jnlp
 
+import java.util.jar.JarFile
 import groovy.xml.MarkupBuilder
 
 import org.gradle.api.DefaultTask
@@ -24,7 +25,7 @@ class JnlpTask extends DefaultTask {
                 // TODO: search, which jar contains the main class
                 def resolvedJars = project.configurations.jnlp.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
                 resolvedJars.each { ResolvedArtifact artifact ->
-                    jar(jarParams(artifact.name, artifact.moduleVersion.id.version))
+                    jar(jarParams(artifact))
                 }
 
                 // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/avoidingUnnecessaryUpdateChecks.html
@@ -35,10 +36,23 @@ class JnlpTask extends DefaultTask {
         }
     }
 
-    Map<String, String> jarParams(String name, String version) {
-        if (project.jnlp.useVersions)
-            [href: "lib/${name}.jar", version: "${version}"]
-        else
-            [href: "lib/${name}__V${version}.jar"]
+    Map<String, String> jarParams(ResolvedArtifact artifact) {
+        String version = artifact.moduleVersion.id.version
+        Map<String, String> jarParams = [:]
+        if (project.jnlp.useVersions) {
+            jarParams.href = "lib/${artifact.name}.jar"
+            jarParams.version = "${version}"
+        }
+        else {
+            jarParams.href = "lib/${artifact.name}__V${version}.jar"
+        }
+
+        if (containsMainClass(artifact.file))
+            jarParams.main = 'true'
+        return jarParams
+    }
+
+    boolean containsMainClass(File file) {
+        new JarFile(file).getEntry(project.jnlp.mainClassName.replace('.', '/') + '.class')
     }
 }
