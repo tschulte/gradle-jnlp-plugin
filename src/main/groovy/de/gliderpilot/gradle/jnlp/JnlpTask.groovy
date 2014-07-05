@@ -4,11 +4,16 @@ import java.util.jar.JarFile
 import groovy.xml.MarkupBuilder
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
 class JnlpTask extends DefaultTask {
+
+    @InputFiles
+    Configuration from
 
     @OutputFile
     File output
@@ -23,7 +28,7 @@ class JnlpTask extends DefaultTask {
             xml.resources {
                 j2se(project.jnlp.j2seParams)
                 // TODO: search, which jar contains the main class
-                def resolvedJars = project.configurations.jnlp.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
+                def resolvedJars = from.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
                 resolvedJars.each { ResolvedArtifact artifact ->
                     jar(jarParams(artifact))
                 }
