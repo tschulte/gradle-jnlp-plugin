@@ -19,8 +19,10 @@ class GradleJnlpPlugin implements Plugin<Project> {
             into new File(project.buildDir, 'tmp/jnlp/lib')
         }
         project.plugins.withId('java') {
-            // if plugin java is applied, we don't need to do anything, just use runtime
+            // if plugin java is applied use the runtime configuration
             project.configurations.jnlp.extendsFrom project.configurations.runtime
+            // plus the project itself
+            project.dependencies.jnlp project
             project.tasks.copyJars.dependsOn project.tasks.jar
         }
         /*        project.tasks.create('signJars', SignJarsTask) {

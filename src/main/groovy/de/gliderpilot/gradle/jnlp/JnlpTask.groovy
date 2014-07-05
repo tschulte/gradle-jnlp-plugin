@@ -22,8 +22,6 @@ class JnlpTask extends DefaultTask {
             xml.resources {
                 j2se(project.jnlp.j2seParams)
                 // TODO: search, which jar contains the main class
-                if (project.plugins.hasPlugin('java'))
-                    jar(jarParams(project.name, project.version) + [main: 'true'])
                 def resolvedJars = project.configurations.jnlp.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
                 resolvedJars.each { ResolvedArtifact artifact ->
                     jar(jarParams(artifact.name, artifact.moduleVersion.id.version))
