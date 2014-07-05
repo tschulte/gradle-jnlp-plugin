@@ -27,6 +27,7 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
             }
 
             version = '1.0'
+            targetCompatibility = '1.6'
 
             repositories {
                 jcenter()
@@ -67,6 +68,11 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
 
         then:
         !jars.isEmpty()
+    }
+
+    def 'j2se element is contains version information'() {
+        expect:
+        jnlp.resources.j2se.@version.text() == '1.6'
     }
 
     def 'attributes for #artifact are correct'() {

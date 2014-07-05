@@ -20,7 +20,7 @@ class JnlpTask extends DefaultTask {
                 delegate.with project.jnlp.withXmlClosure
             }
             xml.resources {
-                j2se(version: project.targetCompatibility)
+                j2se(project.jnlp.j2seParams)
                 // TODO: search, which jar contains the main class
                 if (project.plugins.hasPlugin('java'))
                     jar(jarParams(project.name, project.version) + [main: 'true'])

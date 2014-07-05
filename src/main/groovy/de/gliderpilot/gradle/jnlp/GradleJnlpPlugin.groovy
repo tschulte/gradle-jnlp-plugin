@@ -10,10 +10,7 @@ class GradleJnlpPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.extensions.create('jnlp', GradleJnlpPluginExtension, this, project)
 
-        project.apply plugin: 'java-base'
-
         project.configurations.maybeCreate('jnlp')
-
 
         project.tasks.create('generateJnlp', JnlpTask) {
             output new File(project.buildDir, 'tmp/jnlp/launch.jnlp')

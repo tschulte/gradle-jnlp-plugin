@@ -1,5 +1,6 @@
 package de.gliderpilot.gradle.jnlp
 
+import org.gradle.api.JavaVersion
 import groovy.xml.*
 
 import javax.inject.Inject
@@ -20,7 +21,9 @@ class GradleJnlpPluginExtension {
     // TODO: automatically pack jars using pack200
     // boolean usePack200
 
+
     Map<String, String> jnlpParams = [spec: '7.0', href: 'launch.jnlp']
+    Map<String, String> j2seParams
 
     Closure withXmlClosure
 
@@ -43,6 +46,10 @@ class GradleJnlpPluginExtension {
         mainClassName ?: (project.plugins.hasPlugin('application') ? project.mainClassName : null)
     }
 
+    Map<String, String> getJ2seParams() {
+        j2seParams ?: [version: getJavaVersion()]
+    }
+
     void href(String href) {
         jnlpParams.href = href
     }
@@ -57,5 +64,9 @@ class GradleJnlpPluginExtension {
 
     void withXml(Closure closure) {
         withXmlClosure = closure
+    }
+
+    private String getJavaVersion() {
+        project.plugins.hasPlugin('java-base') ? project.targetCompatibility : JavaVersion.current()
     }
 }
