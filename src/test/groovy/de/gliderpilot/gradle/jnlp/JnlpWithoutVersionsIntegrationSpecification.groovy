@@ -77,7 +77,7 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
         jnlp.resources.j2se.@version.text() == '1.6'
     }
 
-    def 'attributes for #artifact are correct'() {
+    def 'jar #artifact has version #version'() {
         when:
         def jar = jnlp.resources.jar.find { it.@href =~ /$artifact/ }
 
@@ -87,12 +87,9 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
         and:
         jar.@href.text() == "lib/${artifact}__V${version}.jar"
 
-        and:
-        jar.@main.text() == main
-
         where:
-        artifact     | version | main
-        'groovy-all' | '2.3.1' | ""
-        'test'       | '1.0'   | "true"
+        artifact     | version
+        'groovy-all' | '2.3.1'
+        'test'       | '1.0'
     }
 }
