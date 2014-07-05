@@ -13,6 +13,7 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
             apply plugin: 'groovy'
             apply plugin: 'application'
             apply plugin: 'de.gliderpilot.jnlp'
+            //apply plugin: 'jetty'
 
             buildscript {
                 dependencies {
@@ -48,7 +49,7 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
                 }
             }
         """.stripIndent()
-        project.run ':generateJnlp', ':copyJars', ':generateVersionXml'
+        project.run ':generateJnlp', ':copyJars'
         def jnlpFile = project.file('build/tmp/jnlp/launch.jnlp')
         jnlp = new XmlSlurper().parse(jnlpFile)
     }

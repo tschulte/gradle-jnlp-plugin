@@ -12,12 +12,13 @@ class CopyJarsTask extends DefaultTask {
 
     @TaskAction
     void copy() {
+        if (project.plugins.hasPlugin('java'))
         project.copy {
             from project.tasks.jar.outputs.files
             into into
             rename { "${project.name}__V${project.version}.jar" }
         }
-        def resolvedJars = project.configurations.runtime.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
+        def resolvedJars = project.configurations.jnlp.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
         resolvedJars.each { ResolvedArtifact artifact ->
             project.copy {
                 from artifact.file

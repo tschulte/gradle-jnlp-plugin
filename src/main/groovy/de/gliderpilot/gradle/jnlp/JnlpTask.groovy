@@ -15,20 +15,25 @@ class JnlpTask extends DefaultTask {
     @TaskAction
     void generateJnlp() {
         MarkupBuilder xml = new MarkupBuilder(output.newPrintWriter('UTF-8'))
-        def extension = project.jnlp
-        xml.jnlp(extension.jnlpParams) {
-            if (extension.withXmlClosure) {
-                delegate.with extension.withXmlClosure
+        xml.jnlp(project.jnlp.jnlpParams) {
+            if (project.jnlp.withXmlClosure) {
+                delegate.with project.jnlp.withXmlClosure
             }
             xml.resources {
                 j2se(version: project.targetCompatibility)
-                jar(jarParams(project.name, project.version) + [main: 'true'])
-                def resolvedJars = project.configurations.runtime.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
+                // TODO: search, which jar contains the main class
+                if (project.plugins.hasPlugin('java'))
+                    jar(jarParams(project.name, project.version) + [main: 'true'])
+                def resolvedJars = project.configurations.jnlp.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
                 resolvedJars.each { ResolvedArtifact artifact ->
                     jar(jarParams(artifact.name, artifact.moduleVersion.id.version))
                 }
+
+                // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/avoidingUnnecessaryUpdateChecks.html
+                if (project.jnlp.useVersions)
+                    property name: 'jnlp.versionEnabled', value: 'true'
             }
-            'application-desc'('main-class': "${project.mainClassName}")
+            'application-desc'('main-class': "${project.jnlp.mainClassName}")
         }
     }
 

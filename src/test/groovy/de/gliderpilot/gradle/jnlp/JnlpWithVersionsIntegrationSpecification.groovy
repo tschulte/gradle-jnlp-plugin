@@ -14,6 +14,8 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractPluginSpecificati
             apply plugin: 'application'
             apply plugin: 'de.gliderpilot.jnlp'
 
+            //apply plugin: 'jetty'
+
             buildscript {
                 dependencies {
                     classpath files('${new File('build/classes/main').absolutePath}')
@@ -48,7 +50,7 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractPluginSpecificati
                 }
             }
         """.stripIndent()
-        project.run ':generateJnlp', ':copyJars', ':generateVersionXml'
+        project.run ':generateJnlp', ':copyJars'
         def jnlpFile = project.file('build/tmp/jnlp/launch.jnlp')
         jnlp = new XmlSlurper().parse(jnlpFile)
     }
@@ -99,11 +101,30 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractPluginSpecificati
         'test'       | '1.0'   | "true"
     }
 
+    def 'property jnlp.versionEnabled is set to true'() {
+        when:
+        def property = jnlp.resources.property.find { it.@name == 'jnlp.versionEnabled' }
+
+        then:
+        property.@value.text() == 'true'
+
+    }
+
     def 'jars are copied'() {
         expect:
         project.file('build/tmp/jnlp/lib').list { file, name -> name.endsWith '.jar' }.sort() == [
             'groovy-all__V2.3.1.jar',
             'test__V1.0.jar'
         ]
+    }
+
+    def 'main-class is set'() {
+        expect:
+        jnlp.'application-desc'.@'main-class'.text() == 'de.gliderpilot.jnlp.test.Main'
+    }
+
+    def 'main-jar is marked'() {
+        expect:
+        jnlp.resources.jar.find { it.@href =~ 'test' }.@main.text() == 'true'
     }
 }

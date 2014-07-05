@@ -9,8 +9,16 @@ import org.gradle.api.Project
 class GradleJnlpPluginExtension {
 
     private GradleJnlpPlugin plugin
+    private Project project
 
+    // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/avoidingUnnecessaryUpdateChecks.html
     boolean useVersions
+
+    // not needed, if application-plugin is applied
+    String mainClassName
+
+    // TODO: automatically pack jars using pack200
+    // boolean usePack200
 
     Map<String, String> jnlpParams = [spec: '7.0', href: 'launch.jnlp']
 
@@ -19,6 +27,7 @@ class GradleJnlpPluginExtension {
     @Inject
     GradleJnlpPluginExtension(GradleJnlpPlugin plugin, Project project) {
         this.plugin = plugin
+        this.project = project
         if (project.version != 'unspecified') {
             jnlpParams.version = project.version
         }
@@ -28,6 +37,10 @@ class GradleJnlpPluginExtension {
                 vendor project.group ?: project.name
             }
         }
+    }
+
+    String getMainClassName() {
+        mainClassName ?: (project.plugins.hasPlugin('application') ? project.mainClassName : null)
     }
 
     void href(String href) {
