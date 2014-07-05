@@ -1,7 +1,9 @@
 package de.gliderpilot.gradle.jnlp
 
 import spock.lang.Shared
+import spock.lang.Unroll
 
+@Unroll
 class JnlpWithoutJavaPluginIntegrationSpecification extends AbstractPluginSpecification {
 
     @Shared

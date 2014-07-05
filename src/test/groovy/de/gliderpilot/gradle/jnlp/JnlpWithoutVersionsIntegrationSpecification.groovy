@@ -1,7 +1,9 @@
 package de.gliderpilot.gradle.jnlp
 
 import spock.lang.Shared
+import spock.lang.Unroll
 
+@Unroll
 class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecification {
 
     @Shared
@@ -83,14 +85,14 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
         jar != null
 
         and:
-        jar.@href.text() == "lib/${artifact}.jar"
+        jar.@href.text() == "lib/${artifact}__V${version}.jar"
 
         and:
         jar.@main.text() == main
 
         where:
-        artifact             | main
-        'groovy-all__V2.3.1' | ""
-        'test__V1.0'         | "true"
+        artifact     | version | main
+        'groovy-all' | '2.3.1' | ""
+        'test'       | '1.0'   | "true"
     }
 }
