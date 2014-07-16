@@ -27,4 +27,4 @@ apply from: 'gradle/publishing.gradle'
 apply from: 'gradle/bintray.gradle'
 apply from: 'gradle/artifactory.gradle'
 
-tasks.release.finalizedBy artifactoryPublish, bintrayUpload
+//tasks.release.finalizedBy artifactoryPublish, bintrayUpload
