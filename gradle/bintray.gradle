@@ -7,7 +7,7 @@ bintray {
     key = bintrayKey
     publications = ['mavenJava']
     pkg {
-        repo = 'tschulte'
+        repo = 'maven'
         name = 'gradle-jnlp-plugin'
         desc = 'Gradle plugin to generate webstart and applet jnlp files'
         licenses = ['Apache-2.0']
