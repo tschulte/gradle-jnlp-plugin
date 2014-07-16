@@ -1,8 +1,5 @@
 apply from: 'gradle/credentials.gradle'
 apply from: 'gradle/compile.gradle'
-apply from: 'gradle/publishing.gradle'
-apply from: 'gradle/bintray.gradle'
-apply from: 'gradle/artifactory.gradle'
 apply plugin: 'release'
 
 
@@ -25,5 +22,9 @@ dependencies {
 		exclude module: 'groovy-all'
 	}
 }
+
+apply from: 'gradle/publishing.gradle'
+apply from: 'gradle/bintray.gradle'
+apply from: 'gradle/artifactory.gradle'
 
 tasks.release.finalizedBy artifactoryPublish, bintrayUpload

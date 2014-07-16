@@ -19,7 +19,6 @@ buildscript {
 
     dependencies {
         classpath 'de.gliderpilot.gradle.jnlp:gradle-jnlp-plugin:+'
-        classpath 'org.codehaus.gpars:gpars:1.2.1'
     }
 }
 
