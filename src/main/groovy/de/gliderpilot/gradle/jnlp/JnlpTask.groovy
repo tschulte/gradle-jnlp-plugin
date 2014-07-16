@@ -22,12 +22,9 @@ class JnlpTask extends DefaultTask {
     void generateJnlp() {
         MarkupBuilder xml = new MarkupBuilder(output.newPrintWriter('UTF-8'))
         xml.jnlp(project.jnlp.jnlpParams) {
-            if (project.jnlp.withXmlClosure) {
-                delegate.with project.jnlp.withXmlClosure
-            }
-            xml.resources {
+            delegate.with project.jnlp.withXmlClosure
+            resources {
                 j2se(project.jnlp.j2seParams)
-                // TODO: search, which jar contains the main class
                 def resolvedJars = from.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
                 resolvedJars.each { ResolvedArtifact artifact ->
                     jar(jarParams(artifact))
@@ -36,8 +33,11 @@ class JnlpTask extends DefaultTask {
                 // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/avoidingUnnecessaryUpdateChecks.html
                 if (project.jnlp.useVersions)
                     property name: 'jnlp.versionEnabled', value: 'true'
+                // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/reducingDownloadTime.html
+                if (project.jnlp.usePack200)
+                    property name: 'jnlp.packEnabled', value: 'true'
             }
-            'application-desc'('main-class': "${project.jnlp.mainClassName}")
+            delegate.with project.jnlp.desc
         }
     }
 

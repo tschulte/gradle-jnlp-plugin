@@ -15,11 +15,12 @@ class GradleJnlpPluginExtension {
     // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/avoidingUnnecessaryUpdateChecks.html
     boolean useVersions
 
+    // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/reducingDownloadTime.html
+    boolean usePack200
+
     // not needed, if application-plugin is applied
     String mainClassName
 
-    // TODO: automatically pack jars using pack200
-    // boolean usePack200
 
 
     Map<String, String> jnlpParams = [spec: '7.0', href: 'launch.jnlp']
@@ -30,6 +31,7 @@ class GradleJnlpPluginExtension {
     List<String> signJarRemovedManifestEntries = ['Trusted-Only', 'Trusted-Library']
 
     Closure withXmlClosure
+    Closure desc
 
     @Inject
     GradleJnlpPluginExtension(GradleJnlpPlugin plugin, Project project) {
@@ -48,6 +50,9 @@ class GradleJnlpPluginExtension {
                 title project.name
                 vendor project.group ?: project.name
             }
+        }
+        desc = {
+            'application-desc'('main-class': "${project.jnlp.mainClassName}")
         }
     }
 
