@@ -17,7 +17,6 @@
 apply from: 'gradle/credentials.gradle'
 apply from: 'gradle/compile.gradle'
 apply plugin: 'release'
-apply plugin: 'idea'
 
 buildscript {
     repositories {
