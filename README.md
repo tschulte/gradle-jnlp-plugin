@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/tschulte/gradle-jnlp-plugin.svg?branch=master)](https://travis-ci.org/tschulte/gradle-jnlp-plugin)
-[![Coverage Status](https://coveralls.io/repos/tschulte/gradle-jnlp-plugin/badge.png)](https://coveralls.io/r/tschulte/gradle-jnlp-plugin)
+[![Coverage Status](https://coveralls.io/repos/tschulte/gradle-jnlp-plugin/badge.png?branch=master)](https://coveralls.io/r/tschulte/gradle-jnlp-plugin?branch=master)
 
 Gradle plugin to create webstart files
 --------------------------------------
