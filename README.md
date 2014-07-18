@@ -1,3 +1,6 @@
+### Build Status
+[![Build Status](https://travis-ci.org/tschulte/gradle-jnlp-plugin.svg?branch=master)](https://travis-ci.org/tschulte/gradle-jnlp-plugin)
+
 Gradle plugin to create webstart files
 --------------------------------------
 
