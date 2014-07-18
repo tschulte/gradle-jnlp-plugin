@@ -48,8 +48,8 @@ artifacts {
 
 def pomConfig = {
     name project.name
-    description project.project_description
-    url project.project_url
+    description 'Gradle plugin to generate webstart and applet jnlp files'
+    url 'https://github.com/tschulte/gradle-jnlp-plugin'
     inceptionYear '2014'
     licenses {
         license([:]) {
@@ -59,7 +59,7 @@ def pomConfig = {
         }
     }
     scm {
-        url project.project_scm
+        url 'https://github.com/tschulte/gradle-jnlp-plugin'
     }
     developers {
         [
