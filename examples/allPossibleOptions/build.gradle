@@ -1,0 +1,45 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'de.gliderpilot.gradle.jnlp:gradle-jnlp-plugin:0.0.2'
+    }
+}
+
+apply plugin: 'de.gliderpilot.jnlp'
+
+dependencies {
+    jnlp project(":application")
+}
+
+jnlp {
+    href 'launch.jnlp'
+    codebase 'http://gliderpilot.de'
+    spec '7.0'
+    j2seParams = [version: '7.0+', 'max-heap-size': '256m']
+    signJarAddedManifestEntries = [
+        'Codebase': 'http://gliderpilot.de',
+        'Permissions': 'all-permissions',
+        'Application-Name': "${project.name}"
+    ]
+    signJarRemovedManifestEntries = ['Trusted-Only', 'Trusted-Library']
+    mainClassName = 'org.example.Launcher'
+    withXml {
+        information {
+            title project.name
+            vendor project.group ?: project.name
+        }
+        security {
+            'all-permissions'()
+        }
+    }
+    desc = {
+        'application-desc'('main-class': "${project.jnlp.mainClassName}") {
+            argument('-verbose')
+        }
+    }
+    signJarParams = [alias: 'myalias', storepass: 'mystorepass']
+}
+
