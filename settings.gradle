@@ -17,3 +17,5 @@ include 'services:webservice'
 */
 
 rootProject.name = 'gradle-jnlp-plugin'
+
+include ':gradle-jnlp-plugin'

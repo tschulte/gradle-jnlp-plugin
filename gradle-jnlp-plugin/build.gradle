@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-apply from: 'gradle/credentials.gradle'
-apply from: 'gradle/compile.gradle'
+apply from: "$rootDir/gradle/credentials.gradle"
+apply from: "$rootDir/gradle/compile.gradle"
 apply plugin: 'release'
 
 buildscript {
@@ -41,10 +41,10 @@ dependencies {
 	}
 }
 
-apply from: 'gradle/publishing.gradle'
-apply from: 'gradle/bintray.gradle'
-apply from: 'gradle/artifactory.gradle'
-apply from: 'gradle/code-quality.gradle'
-apply from: 'gradle/code-coverage.gradle'
+apply from: "$rootDir/gradle/publishing.gradle"
+apply from: "$rootDir/gradle/bintray.gradle"
+apply from: "$rootDir/gradle/artifactory.gradle"
+apply from: "$rootDir/gradle/code-quality.gradle"
+apply from: "$rootDir/gradle/code-coverage.gradle"
 
 //tasks.release.finalizedBy artifactoryPublish, bintrayUpload
