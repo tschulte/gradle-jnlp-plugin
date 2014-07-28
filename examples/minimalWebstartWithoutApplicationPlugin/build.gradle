@@ -1,0 +1,30 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'de.gliderpilot.gradle.jnlp:gradle-jnlp-plugin:0.0.2'
+    }
+}
+
+apply plugin: 'de.gliderpilot.jnlp'
+
+dependencies {
+    jnlp project(":application")
+}
+
+jnlp {
+    mainClassName = 'org.example.Launcher'
+    withXml {
+        information {
+            title project.name
+            vendor project.group ?: project.name
+        }
+        security {
+            'all-permissions'()
+        }
+    }
+    signJarParams = [alias: 'myalias', storepass: 'mystorepass']
+}
+
