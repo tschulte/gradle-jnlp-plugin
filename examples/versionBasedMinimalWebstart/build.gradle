@@ -14,7 +14,7 @@ apply plugin: 'de.gliderpilot.jnlp'
 mainClassName = 'org.example.Launcher'
 
 dependencies {
-    runtime project(":application")
+    runtime project(":examples:application")
 }
 
 jnlp {

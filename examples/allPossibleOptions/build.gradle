@@ -11,7 +11,7 @@ buildscript {
 apply plugin: 'de.gliderpilot.jnlp'
 
 dependencies {
-    jnlp project(":application")
+    jnlp project(":examples:application")
 }
 
 jnlp {

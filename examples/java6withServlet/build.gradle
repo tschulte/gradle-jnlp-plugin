@@ -15,7 +15,7 @@ apply plugin: 'war'
 apply plugin: 'jetty'
 
 dependencies {
-    jnlp project(":application")
+    jnlp project(":examples:application")
     runtime 'org.codehaus.mojo.webstart:webstart-jnlp-servlet:1.0-6.0.02_ea_b02.2'
 }
 
