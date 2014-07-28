@@ -1,0 +1,47 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'de.gliderpilot.gradle.jnlp:gradle-jnlp-plugin:0.0.3-SNAPSHOT'
+    }
+}
+
+apply plugin: 'de.gliderpilot.jnlp'
+apply plugin: 'war'
+apply plugin: 'jetty'
+
+dependencies {
+    jnlp project(":application")
+    runtime 'org.codehaus.mojo.webstart:webstart-jnlp-servlet:1.0-6.0.02_ea_b02.2'
+}
+
+jnlp {
+    jnlpParams << [href: '$$name', codebase: '$$codebase']
+    j2seParams = [version: '6.0+', 'max-heap-size': '256m']
+    useVersions = true
+    mainClassName = 'org.example.Launcher'
+    href '$$name'
+    codebase '$$codebase'
+    withXml {
+        information {
+            title project.name
+            vendor project.group ?: project.name
+        }
+        security {
+            'all-permissions'()
+        }
+    }
+    signJarParams = [alias: 'myalias', storepass: 'mystorepass']
+}
+
+generateJnlp << {
+    output.text = output.readLines('UTF-8').findAll { !it.contains('jnlp.versionEnabled') }.join('\n')
+}
+
+war {
+    from createWebstartDir
+}
