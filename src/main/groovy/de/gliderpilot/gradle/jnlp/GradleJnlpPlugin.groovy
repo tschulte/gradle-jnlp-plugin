@@ -43,6 +43,7 @@ class GradleJnlpPlugin implements Plugin<Project> {
         }
         project.tasks.create('createWebstartDir') {
             dependsOn 'generateJnlp', 'copyJars', 'signJars'
+            outputs.dir new File(project.buildDir, 'tmp/jnlp')
         }
         project.plugins.withId('java') {
             // if plugin java is applied use the runtime configuration
