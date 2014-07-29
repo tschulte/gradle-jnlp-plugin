@@ -4,7 +4,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'de.gliderpilot.gradle.jnlp:gradle-jnlp-plugin:0.0.2'
+        classpath 'de.gliderpilot.gradle.jnlp:gradle-jnlp-plugin:+'
     }
 }
 
