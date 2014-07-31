@@ -74,6 +74,7 @@ class JnlpTask extends DefaultTask {
     }
 
     boolean containsMainClass(File file) {
-        new JarFile(file).getEntry(project.jnlp.mainClassName.replace('.', '/') + '.class')
+        if (project.jnlp.mainClassName)
+            new JarFile(file).getEntry(project.jnlp.mainClassName.replace('.', '/') + '.class')
     }
 }
