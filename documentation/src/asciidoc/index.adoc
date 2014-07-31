@@ -1,0 +1,38 @@
+= Using the gradle-jnlp-plugin
+Tobias Schulte <tobias.schulte@gliderpilot.de>
+:examplesDir: ../examples
+
+== Minimal example using application plugin
+
+[source,groovy]
+----
+include::{examplesDir}/minimalWebstart/build.gradle[]
+----
+
+== Minimal example without using application plugin
+
+[source,groovy]
+----
+include::{examplesDir}/minimalWebstartWithoutApplicationPlugin/build.gradle[]
+----
+
+== Version based download
+
+[source,groovy]
+----
+include::{examplesDir}/versionBasedMinimalWebstart/build.gradle[]
+----
+
+== All possible options
+
+[source,groovy]
+----
+include::{examplesDir}/allPossibleOptions/build.gradle[]
+----
+
+== Using JnlpDownloadServlet when targeting Java 6
+
+[source,groovy]
+----
+include::{examplesDir}/java6withServlet/build.gradle[]
+----
