@@ -16,7 +16,6 @@
 
 apply from: "$rootDir/gradle/credentials.gradle"
 apply from: "$rootDir/gradle/compile.gradle"
-apply plugin: 'release'
 
 buildscript {
     repositories {
@@ -25,7 +24,6 @@ buildscript {
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5'
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:2.2.4'
-        classpath 'com.github.townsfolk:gradle-release:1.2'
         classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.10.0'
         classpath 'net.saliman:gradle-cobertura-plugin:2.2.4'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:0.6.1'
