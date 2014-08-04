@@ -33,7 +33,7 @@ class SignJarsTask extends AbstractCopyJarsTask {
             jarsToSign << it.file
         }
         inputs.removed {
-            project.delete(new File(into, newName(it.name)))
+            project.delete(new File(into, newName(it.file.name)))
         }
         GParsPool.withPool(threadCount()) {
             jarsToSign.eachParallel { jarToSign ->
