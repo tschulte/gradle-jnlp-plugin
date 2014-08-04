@@ -17,23 +17,10 @@ package de.gliderpilot.gradle.jnlp
 
 import groovyx.gpars.GParsPool
 
-import java.util.jar.JarEntry
-import java.util.jar.JarInputStream
-import java.util.jar.JarOutputStream
+import java.util.jar.*
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.Project
-import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
-
-import java.util.jar.Manifest
-import java.util.jar.Attributes
 
 
 class SignJarsTask extends AbstractCopyJarsTask {
@@ -63,25 +50,23 @@ class SignJarsTask extends AbstractCopyJarsTask {
 
     File copyUnsignAndAlterManifest(File input) {
         File output = new File(into, newName(input.name))
-        new JarInputStream(input.newInputStream()).withStream { is ->
-            Manifest manifest = is.manifest ?: new Manifest()
-            // ensure either Manifest-Version or Signature-Version is set, otherwise the manifest will not be written
-            if (!manifest.mainAttributes.getValue('Manifest-Version') && !manifest.mainAttributes.getValue('Signature-Version'))
-                manifest.mainAttributes.putValue('Manifest-Version', '1.0')
+        JarFile jarFile = new JarFile(input)
+        Manifest manifest = jarFile.manifest ?: new Manifest()
+        // ensure either Manifest-Version or Signature-Version is set, otherwise the manifest will not be written
+        if (!manifest.mainAttributes.getValue('Manifest-Version') && !manifest.mainAttributes.getValue('Signature-Version'))
+            manifest.mainAttributes.putValue('Manifest-Version', '1.0')
+        project.jnlp.signJarRemovedManifestEntries.each { key ->
+            manifest.mainAttributes.remove(new Attributes.Name(key))
+        }
+        project.jnlp.signJarAddedManifestEntries.each { key, value ->
+            manifest.mainAttributes.putValue(key, value)
+        }
 
-            project.jnlp.signJarRemovedManifestEntries.each { key ->
-                manifest.mainAttributes.remove(new Attributes.Name(key))
-            }
-            project.jnlp.signJarAddedManifestEntries.each { key, value ->
-                manifest.mainAttributes.putValue(key, value)
-            }
-            new JarOutputStream(output.newOutputStream(), manifest).withStream { os ->
-                JarEntry entry = null
-                while((entry = is.nextEntry) != null) {
-                    if (entry.name ==~ '(?i)META-INF/.*[.](?:DSA|SF|RSA)')
-                        continue
+        new JarOutputStream(output.newOutputStream(), manifest).withStream { os ->
+            jarFile.entries().each { entry ->
+                if (entry.name != JarFile.MANIFEST_NAME && !(entry.name ==~ '(?i)META-INF/.*[.](?:DSA|SF|RSA)')) {
                     os.putNextEntry(new JarEntry(entry.name))
-                    os << is
+                    os << jarFile.getInputStream(entry)
                     os.closeEntry()
                 }
             }
