@@ -16,6 +16,7 @@
 package de.gliderpilot.gradle.jnlp
 
 import java.util.jar.JarFile
+
 import groovy.xml.MarkupBuilder
 
 import org.gradle.api.DefaultTask
@@ -41,9 +42,8 @@ class JnlpTask extends DefaultTask {
             delegate.with project.jnlp.withXmlClosure
             resources {
                 j2se(project.jnlp.j2seParams)
-                def resolvedJars = from.resolvedConfiguration.resolvedArtifacts.findAll { it.extension == 'jar' }
-                resolvedJars.each { ResolvedArtifact artifact ->
-                    jar(jarParams(artifact))
+                from.resolve().findAll { it.name.endsWith('.jar') }.each { File jarFile ->
+                    jar(jarParams(jarFile))
                 }
 
                 // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/avoidingUnnecessaryUpdateChecks.html
@@ -57,20 +57,20 @@ class JnlpTask extends DefaultTask {
         }
     }
 
-    Map<String, String> jarParams(ResolvedArtifact artifact) {
-        String version = artifact.moduleVersion.id.version
-        Map<String, String> jarParams = [:]
-        if (project.jnlp.useVersions) {
-            jarParams.href = "lib/${artifact.name}.jar"
-            jarParams.version = "${version}"
-        }
-        else {
-            jarParams.href = "lib/${artifact.name}__V${version}.jar"
-        }
-
-        if (containsMainClass(artifact.file))
+    Map<String, String> jarParams(File file) {
+        ResolvedArtifact artifact = from.resolvedConfiguration.resolvedArtifacts.find { it.extension == 'jar' && it.file.name == file.name }
+        Map<String, String> jarParams = artifact ? jarParams(artifact) : [href: "lib/${file.name}"]
+        if (containsMainClass(file))
             jarParams.main = 'true'
         return jarParams
+    }
+
+    Map<String, String> jarParams(ResolvedArtifact artifact) {
+        String version = artifact.moduleVersion.id.version
+        if (project.jnlp.useVersions && !version.endsWith("-SNAPSHOT"))
+            [href: "lib/${artifact.name}.jar", version: "${version}"]
+        else
+            [href: "lib/${artifact.name}__V${version}.jar"]
     }
 
     boolean containsMainClass(File file) {
