@@ -3,3 +3,6 @@ script: ./gradlew clean build cobertura
 jdk: oraclejdk7
 env: TERM=dumb
 after_success: ./gradlew coveralls
+before_install:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
