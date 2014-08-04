@@ -31,8 +31,8 @@ class JnlpWithoutJavaPluginIntegrationSpecification extends AbstractPluginSpecif
 
             buildscript {
                 dependencies {
-                    classpath files('${new File('build/classes/main').absolutePath}')
-                    classpath files('${new File('build/resources/main').absolutePath}')
+                    classpath files('${new File('build/classes/main').absoluteFile.toURI()}')
+                    classpath files('${new File('build/resources/main').absoluteFile.toURI()}')
                 }
             }
 
