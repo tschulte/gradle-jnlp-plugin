@@ -64,7 +64,7 @@ class SignJarsTask extends AbstractCopyJarsTask {
 
         new JarOutputStream(output.newOutputStream(), manifest).withStream { os ->
             jarFile.entries().each { entry ->
-                if (entry.name != JarFile.MANIFEST_NAME && !(entry.name ==~ '(?i)META-INF/.*[.](?:DSA|SF|RSA)')) {
+                if (entry.name != JarFile.MANIFEST_NAME && !(entry.name ==~ "(?i)META-INF/${project.jnlp.signJarFilteredMetaInfFiles}")) {
                     os.putNextEntry(new JarEntry(entry.name))
                     os << jarFile.getInputStream(entry)
                     os.closeEntry()
