@@ -68,9 +68,15 @@ class JnlpTask extends DefaultTask {
     Map<String, String> jarParams(ResolvedArtifact artifact) {
         String version = artifact.moduleVersion.id.version
         if (project.jnlp.useVersions && !version.endsWith("-SNAPSHOT"))
-            [href: "lib/${artifact.name}.jar", version: "${version}"]
+            if (artifact.classifier == null)
+                [href: "lib/${artifact.name}.jar", version: "${version}"]
+            else
+                [href: "lib/${artifact.name}-${artifact.classifier}.jar", version: "${version}"]
         else
-            [href: "lib/${artifact.name}__V${version}.jar"]
+            if (artifact.classifier == null)
+                [href: "lib/${artifact.name}__V${version}.jar"]
+            else
+                [href: "lib/${artifact.name}-${artifact.classifier}__V${version}.jar"]
     }
 
     boolean containsMainClass(File file) {
