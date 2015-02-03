@@ -31,6 +31,13 @@ abstract class AbstractCopyJarsTask extends DefaultTask {
 
     String newName(String fileName) {
         ResolvedArtifact artifact = from.resolvedConfiguration.resolvedArtifacts.find { it.extension == 'jar' && it.file.name == fileName }
-        artifact ? "${artifact.name}__V${artifact.moduleVersion.id.version}.jar" : fileName
+        if (artifact != null) {
+            if (artifact.classifier == null)
+                "${artifact.name}__V${artifact.moduleVersion.id.version}.jar"
+            else
+                "${artifact.name}-${artifact.classifier}__V${artifact.moduleVersion.id.version}.jar"
+        } else {
+            fileName
+        }
     }
 }
