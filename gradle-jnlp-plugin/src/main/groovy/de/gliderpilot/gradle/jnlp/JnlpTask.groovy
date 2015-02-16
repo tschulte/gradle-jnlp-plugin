@@ -36,6 +36,7 @@ class JnlpTask extends DefaultTask {
 
     @TaskAction
     void generateJnlp() {
+        if (project.jnlp.jnlpParams.href != null) output = new File(output.parent, project.jnlp.jnlpParams.href)
         MarkupBuilder xml = new MarkupBuilder(output.newPrintWriter('UTF-8'))
         xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
         xml.jnlp(project.jnlp.jnlpParams) {
