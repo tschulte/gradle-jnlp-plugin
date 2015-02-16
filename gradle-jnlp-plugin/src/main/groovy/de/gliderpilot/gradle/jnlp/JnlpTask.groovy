@@ -36,6 +36,7 @@ class JnlpTask extends DefaultTask {
 
     @TaskAction
     void generateJnlp() {
+        if (project.jnlp.jnlpParams.href != null) output = new File(output.parent, project.jnlp.jnlpParams.href)
         MarkupBuilder xml = new MarkupBuilder(output.newPrintWriter('UTF-8'))
         xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
         xml.jnlp(project.jnlp.jnlpParams) {
@@ -69,8 +70,8 @@ class JnlpTask extends DefaultTask {
         String version = artifact.moduleVersion.id.version
         if (project.jnlp.useVersions && !version.endsWith("-SNAPSHOT"))
             if (artifact.classifier == null)
-                [href: "lib/${artifact.name}.jar", version: "${version}"]
-            else
+                    [href: "lib/${artifact.name}.jar", version: "${version}"]
+            else 
                 [href: "lib/${artifact.name}-${artifact.classifier}.jar", version: "${version}"]
         else
             if (artifact.classifier == null)
