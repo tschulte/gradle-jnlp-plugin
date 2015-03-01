@@ -68,7 +68,7 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractPluginSpecificati
             }
         """.stripIndent()
         project.run ':generateJnlp', ':copyJars'
-        def jnlpFile = project.file('build/tmp/jnlp/launch.jnlp')
+        def jnlpFile = project.file('build/jnlp/launch.jnlp')
         jnlp = new XmlSlurper().parse(jnlpFile)
     }
 
@@ -126,7 +126,7 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractPluginSpecificati
 
     def 'jars are copied'() {
         expect:
-        project.file('build/tmp/jnlp/lib').list { file, name -> name.endsWith '.jar' }.sort() == [
+        project.file('build/jnlp/lib').list { file, name -> name.endsWith '.jar' }.sort() == [
             'groovy-all__V2.3.1.jar',
             'test__V1.0.jar'
         ]

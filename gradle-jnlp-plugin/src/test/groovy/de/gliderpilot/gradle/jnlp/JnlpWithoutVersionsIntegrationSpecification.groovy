@@ -68,7 +68,7 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
             }
         """.stripIndent()
         project.run ':generateJnlp', ':copyJars'
-        def jnlpFile = project.file('build/tmp/jnlp/launch.jnlp')
+        def jnlpFile = project.file('build/jnlp/launch.jnlp')
         jnlp = new XmlSlurper().parse(jnlpFile)
     }
 

@@ -46,7 +46,7 @@ followed by
 
 ./gradlew createWebstart
 
-which will create webstart files at build/tmp/jnlp.
+which will create webstart files at build/jnlp.
 
 To launch the application with webstart, call
-javaws build/tmp/jnlp/launch.jnlp (you must first set your java security settings to medium, or use a real certificate).
+javaws build/jnlp/launch.jnlp (you must first set your java security settings to medium, or use a real certificate).
