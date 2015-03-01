@@ -27,6 +27,8 @@ class GradleJnlpPluginExtension {
     private GradleJnlpPlugin plugin
     private Project project
 
+    String destinationPath = 'jnlp'
+
     // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/avoidingUnnecessaryUpdateChecks.html
     boolean useVersions
 

@@ -28,6 +28,9 @@ class SignJarsTask extends AbstractCopyJarsTask {
 
     @TaskAction
     void signJars(IncrementalTaskInputs inputs) {
+        if (!inputs.incremental)
+            project.delete(into.listFiles())
+
         def jarsToSign = []
         inputs.outOfDate {
             jarsToSign << it.file
