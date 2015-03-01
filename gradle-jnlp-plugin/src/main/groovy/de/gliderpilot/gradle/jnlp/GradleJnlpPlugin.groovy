@@ -23,30 +23,28 @@ import org.gradle.api.Project
  */
 class GradleJnlpPlugin implements Plugin<Project> {
 
-    String destinationPath = 'jnlp'
-
     void apply(Project project) {
-        project.extensions.create('jnlp', GradleJnlpPluginExtension, this, project)
+        def jnlp = project.extensions.create('jnlp', GradleJnlpPluginExtension, this, project)
 
         project.configurations.maybeCreate('jnlp')
 
         project.tasks.create('generateJnlp', JnlpTask) {
             from = project.configurations.jnlp
-            output new File(project.buildDir, destinationPath + '/launch.jnlp')
+            output new File(project.buildDir, jnlp.destinationPath + '/launch.jnlp')
         }
         project.tasks.create('copyJars', CopyJarsTask) {
             onlyIf { !project.jnlp.signJarParams }
             from = project.configurations.jnlp
-            into new File(project.buildDir, destinationPath + '/lib')
+            into new File(project.buildDir, jnlp.destinationPath + '/lib')
         }
         project.tasks.create('signJars', SignJarsTask) {
             onlyIf { project.jnlp.signJarParams }
             from = project.configurations.jnlp
-            into new File(project.buildDir, destinationPath + '/lib')
+            into new File(project.buildDir, jnlp.destinationPath + '/lib')
         }
         project.tasks.create('createWebstartDir') {
             dependsOn 'generateJnlp', 'copyJars', 'signJars'
-            outputs.dir new File(project.buildDir, destinationPath)
+            outputs.dir new File(project.buildDir, jnlp.destinationPath)
         }
         project.plugins.withId('java') {
             // if plugin java is applied use the runtime configuration
