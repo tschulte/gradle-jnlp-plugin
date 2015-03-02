@@ -41,12 +41,25 @@ class SignJarsTask extends AbstractCopyJarsTask {
         GParsPool.withPool(threadCount()) {
             jarsToSign.eachParallel { jarToSign ->
                 jarToSign = copyUnsignAndAlterManifest(jarToSign)
+                if (project.jnlp.usePack200) {
+                    project.exec {
+                        commandLine "pack200", "--repack", jarToSign
+                    }.assertNormalExitValue()
+                }
+
                 // AntBuilder is not thread-safe, therefore we need to create
                 // a new one for each file
                 AntBuilder ant = project.createAntBuilder()
                 def signJarParams = new HashMap(project.jnlp.signJarParams)
                 signJarParams.jar = jarToSign
                 ant.signjar(signJarParams)
+
+                if (project.jnlp.usePack200) {
+                    project.exec {
+                        commandLine "pack200", "${jarToSign}.pack.gz", jarToSign
+                    }.assertNormalExitValue()
+                    project.delete(jarToSign)
+                }
             }
         }
     }
