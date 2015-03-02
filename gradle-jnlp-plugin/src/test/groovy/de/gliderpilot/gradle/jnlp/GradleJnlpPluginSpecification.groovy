@@ -31,4 +31,15 @@ class GradleJnlpPluginSpecification extends AbstractPluginSpecification {
         project.plugins['de.gliderpilot.jnlp'].class == GradleJnlpPlugin
     }
 
+    def "when distribution plugin is applied, jnlp plugin automatically creates a distribution"() {
+        when:
+        project.apply plugin: 'distribution'
+
+        then:
+        project.distributions.names.contains 'webstart'
+
+        and:
+        project.distributions['webstart'].contents.sourcePaths.contains(project.tasks.createWebstartDir)
+    }
+
 }

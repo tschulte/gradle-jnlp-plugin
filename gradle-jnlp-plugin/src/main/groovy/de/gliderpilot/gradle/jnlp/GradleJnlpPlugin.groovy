@@ -52,5 +52,12 @@ class GradleJnlpPlugin implements Plugin<Project> {
             // plus the project itself
             project.dependencies.jnlp project
         }
+        project.plugins.withId('distribution') {
+            project.distributions.create('webstart') {
+                contents {
+                    from project.tasks.createWebstartDir
+                }
+            }
+        }
     }
 }
