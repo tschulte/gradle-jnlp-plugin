@@ -30,7 +30,6 @@ class GradleJnlpPlugin implements Plugin<Project> {
 
         project.tasks.create('generateJnlp', JnlpTask) {
             from = project.configurations.jnlp
-            output new File(project.buildDir, jnlp.destinationPath + '/launch.jnlp')
         }
         project.tasks.create('copyJars', CopyJarsTask) {
             onlyIf { !project.jnlp.signJarParams }

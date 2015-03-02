@@ -32,12 +32,13 @@ class JnlpTask extends DefaultTask {
     Configuration from
 
     @OutputFile
-    File output
+    File getJnlpFile() {
+        return new File(project.buildDir, "${project.jnlp.destinationPath}/${project.jnlp.jnlpParams.href ?: 'launch.jnlp'}")
+    }
 
     @TaskAction
     void generateJnlp() {
-        if (project.jnlp.jnlpParams.href != null) output = new File(output.parent, project.jnlp.jnlpParams.href)
-        MarkupBuilder xml = new MarkupBuilder(output.newPrintWriter('UTF-8'))
+        MarkupBuilder xml = new MarkupBuilder(getJnlpFile().newPrintWriter('UTF-8'))
         xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
         xml.jnlp(project.jnlp.jnlpParams) {
             delegate.with project.jnlp.withXmlClosure

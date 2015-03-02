@@ -31,6 +31,19 @@ class GradleJnlpPluginSpecification extends AbstractPluginSpecification {
         project.plugins['de.gliderpilot.jnlp'].class == GradleJnlpPlugin
     }
 
+    def "jnlp file defaults to launch.jnlp"() {
+        expect:
+        project.tasks['generateJnlp'].jnlpFile == new File(project.buildDir, "jnlp/launch.jnlp")
+    }
+
+    def "jnlp file name can be changed with jnlpParams.href"() {
+        when:
+        project.jnlp.jnlpParams.href = 'index.jnlp'
+
+        then:
+        project.tasks['generateJnlp'].jnlpFile == new File(project.buildDir, "jnlp/index.jnlp")
+    }
+
     def "when distribution plugin is applied, jnlp plugin automatically creates a distribution"() {
         when:
         project.apply plugin: 'distribution'
