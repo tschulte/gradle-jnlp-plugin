@@ -44,7 +44,7 @@ class SignJarsTask extends AbstractCopyJarsTask {
                 if (project.jnlp.usePack200) {
                     project.exec {
                         commandLine "pack200", "--repack", jarToSign
-                    }.assertNormalExitValue()
+                    }
                 }
 
                 // AntBuilder is not thread-safe, therefore we need to create
@@ -57,7 +57,7 @@ class SignJarsTask extends AbstractCopyJarsTask {
                 if (project.jnlp.usePack200) {
                     project.exec {
                         commandLine "pack200", "${jarToSign}.pack.gz", jarToSign
-                    }.assertNormalExitValue()
+                    }
                     project.delete(jarToSign)
                 }
             }
@@ -71,9 +71,12 @@ class SignJarsTask extends AbstractCopyJarsTask {
         // ensure either Manifest-Version or Signature-Version is set, otherwise the manifest will not be written
         if (!manifest.mainAttributes.getValue('Manifest-Version') && !manifest.mainAttributes.getValue('Signature-Version'))
             manifest.mainAttributes.putValue('Manifest-Version', '1.0')
-        project.jnlp.signJarRemovedManifestEntries.each { key ->
-            manifest.mainAttributes.remove(new Attributes.Name(key))
+        def removeManifestEntries = { attributes ->
+            def keysToRemove = attributes.keySet().findAll { key -> key.toString() ==~ "(?i)${project.jnlp.signJarRemovedManifestEntries}" }
+            attributes.keySet().removeAll(keysToRemove)
         }
+        removeManifestEntries(manifest.mainAttributes)
+        manifest.entries.values().each(removeManifestEntries)
         project.jnlp.signJarAddedManifestEntries.each { key, value ->
             manifest.mainAttributes.putValue(key, value)
         }

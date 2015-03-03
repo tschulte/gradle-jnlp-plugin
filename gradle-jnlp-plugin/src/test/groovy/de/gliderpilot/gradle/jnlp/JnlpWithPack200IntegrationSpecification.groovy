@@ -55,6 +55,10 @@ class JnlpWithPack200IntegrationSpecification extends AbstractPluginSpecificatio
             repositories {
                 jcenter()
             }
+            dependencies {
+                // jxlayer is already signed. This caused problems with usePack200
+                compile 'org.swinglabs:jxlayer:3.0.4'
+            }
             mainClassName = 'de.gliderpilot.jnlp.test.Main'
             task genkey << {
                 ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
@@ -100,6 +104,6 @@ class JnlpWithPack200IntegrationSpecification extends AbstractPluginSpecificatio
 
     def 'jar file is packed with pack200'() {
         expect:
-        new File(project.buildDir, "jnlp/lib").list() == ['test__V1.0.jar.pack.gz']
+        new File(project.buildDir, "jnlp/lib").list().sort() == ['jxlayer__V3.0.4.jar.pack.gz', 'test__V1.0.jar.pack.gz']
     }
 }
