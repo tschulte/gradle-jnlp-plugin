@@ -18,12 +18,10 @@ dependencies {
 }
 
 jnlp {
-    jnlpParams << [href: '$$name', codebase: '$$codebase']
+    jnlpParams << [codebase: '$$codebase']
     j2seParams = [version: '6.0+', 'max-heap-size': '256m']
     useVersions = true
     mainClassName = 'org.example.Launcher'
-    href '$$name'
-    codebase '$$codebase'
     withXml {
         information {
             title project.name
@@ -37,7 +35,9 @@ jnlp {
 }
 
 generateJnlp << {
-    output.text = output.readLines('UTF-8').findAll { !it.contains('jnlp.versionEnabled') }.join('\n')
+    jnlpFile.with {
+        text = readLines('UTF-8').findAll { !it.contains('jnlp.versionEnabled') }.join('\n')
+    }
 }
 
 war {
