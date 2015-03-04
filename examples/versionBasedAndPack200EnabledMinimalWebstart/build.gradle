@@ -1,0 +1,37 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'de.gliderpilot.gradle.jnlp:gradle-jnlp-plugin:+'
+    }
+}
+
+apply plugin: 'application'
+apply plugin: 'de.gliderpilot.jnlp'
+
+mainClassName = 'org.example.Launcher'
+
+dependencies {
+    runtime project(":examples:application")
+}
+
+jnlp {
+    useVersions = true
+    usePack200 = true
+    withXml {
+        information {
+            title project.name
+            vendor project.group ?: project.name
+        }
+        security {
+            'all-permissions'()
+        }
+    }
+    signJarParams = [alias: 'myalias', storepass: 'mystorepass']
+}
+
+task genkey << {
+    ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US')
+}
