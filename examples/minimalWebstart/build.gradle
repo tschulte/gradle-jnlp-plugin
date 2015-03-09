@@ -27,6 +27,6 @@ jnlp {
             'all-permissions'()
         }
     }
-    signJarParams = [alias: 'myalias', storepass: 'mystorepass']
+    signJarParams = [keystore: '../keystore.ks', alias: 'myalias', storepass: 'mystorepass']
 }
 

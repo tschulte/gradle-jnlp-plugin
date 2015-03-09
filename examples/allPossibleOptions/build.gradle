@@ -24,7 +24,7 @@ jnlp {
         'Permissions': 'all-permissions',
         'Application-Name': "${project.name}"
     ]
-    signJarRemovedManifestEntries = ['Trusted-Only', 'Trusted-Library']
+    signJarRemovedManifestEntries = '(?:Trusted-Only|Trusted-Library|.*-Digest)'
     mainClassName = 'org.example.Launcher'
     withXml {
         information {
@@ -40,6 +40,6 @@ jnlp {
             argument('-verbose')
         }
     }
-    signJarParams = [alias: 'myalias', storepass: 'mystorepass']
+    signJarParams = [keystore: '../keystore.ks', alias: 'myalias', storepass: 'mystorepass']
 }
 
