@@ -8,18 +8,24 @@ buildscript {
     }
 }
 
-apply plugin: 'application'
 apply plugin: 'de.gliderpilot.jnlp'
+apply plugin: 'war'
+apply plugin: 'jetty'
 
-mainClassName = 'org.example.Launcher'
+configurations {
+    jnlp {
+        extendsFrom = []
+    }
+}
 
 dependencies {
-    runtime project(":examples:application")
+    jnlp project(":examples:application")
 }
 
 jnlp {
     useVersions = true
-    usePack200 = true
+    usePack200 = false
+    mainClassName = 'org.example.Launcher'
     withXml {
         information {
             title project.name
@@ -32,6 +38,6 @@ jnlp {
     signJarParams = [keystore: '../keystore.ks', alias: 'myalias', storepass: 'mystorepass']
 }
 
-task genkey << {
-    ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US')
+war {
+    from createWebstartDir
 }
