@@ -21,6 +21,7 @@ jnlp {
     jnlpParams << [codebase: '$$codebase']
     j2seParams = [version: '6.0+', 'max-heap-size': '256m']
     useVersions = true
+    usePack200 = true
     mainClassName = 'org.example.Launcher'
     withXml {
         information {
@@ -36,7 +37,7 @@ jnlp {
 
 generateJnlp << {
     jnlpFile.with {
-        text = readLines('UTF-8').findAll { !it.contains('jnlp.versionEnabled') }.join('\n')
+        text = readLines('UTF-8').findAll { !it.contains('jnlp.versionEnabled') && !it.contains('jnlp.packEnabled') }.join('\n')
     }
 }
 
