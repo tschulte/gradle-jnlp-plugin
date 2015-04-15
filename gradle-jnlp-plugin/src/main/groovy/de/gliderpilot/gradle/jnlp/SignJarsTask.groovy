@@ -36,7 +36,7 @@ class SignJarsTask extends AbstractCopyJarsTask {
             jarsToSign << it.file
         }
         inputs.removed {
-            project.delete(new File(into, newName(it.file.name)))
+            deleteOutputFile(it.file.name)
         }
         GParsPool.withPool(threadCount()) {
             jarsToSign.eachParallel { jarToSign ->
@@ -92,6 +92,14 @@ class SignJarsTask extends AbstractCopyJarsTask {
         }
         return output
     }
+
+    void deleteOutputFile(String fileName) {
+        into.listFiles().find {
+            def fileParts = it.name.split('__V')
+            fileParts.size() == 2 ? fileName - fileParts[0] - fileParts[1] == '-' : false
+        }?.delete()
+    }
+
 
     int threadCount() {
         int threadCount = project.gradle.startParameter.parallelThreadCount
