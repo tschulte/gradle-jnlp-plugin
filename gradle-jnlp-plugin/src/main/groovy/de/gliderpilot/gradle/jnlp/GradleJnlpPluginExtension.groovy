@@ -30,10 +30,10 @@ class GradleJnlpPluginExtension {
     String destinationPath = 'jnlp'
 
     // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/avoidingUnnecessaryUpdateChecks.html
-    boolean useVersions
+    boolean useVersions = true
 
     // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/reducingDownloadTime.html
-    boolean usePack200
+    boolean usePack200 = true
 
     // not needed, if application-plugin is applied
     String mainClassName

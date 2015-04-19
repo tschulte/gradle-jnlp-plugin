@@ -95,7 +95,7 @@ class SignJarsTask extends AbstractCopyJarsTask {
 
     void deleteOutputFile(String fileName) {
         into.listFiles().find {
-            def fileParts = it.name.split('__V')
+            def fileParts = (it.name - '.pack.gz').split('__V')
             fileParts.size() == 2 ? fileName - fileParts[0] - fileParts[1] == '-' : false
         }?.delete()
     }
