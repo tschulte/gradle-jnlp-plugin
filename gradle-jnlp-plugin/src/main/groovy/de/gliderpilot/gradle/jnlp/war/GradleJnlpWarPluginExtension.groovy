@@ -17,6 +17,7 @@ package de.gliderpilot.gradle.jnlp.war
 
 import groovy.transform.PackageScope
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 
@@ -33,13 +34,13 @@ class GradleJnlpWarPluginExtension {
             v3 'org.example:application:3.0:webstart@zip'
         }
         launchers {
-            from(v2) {
+            v2 {
                 rename 'launch.jnlp', 'launch_v2.jnlp'
                 jardiff {
                     from v1
                 }
             }
-            from(v3) {
+            v3 {
                 jardiff {
                     from v1, v2
                 }
@@ -51,6 +52,8 @@ class GradleJnlpWarPluginExtension {
 
     private GradleJnlpWarPlugin plugin
     private Project project
+
+    final CopySpec launchers
 
     @Inject
     GradleJnlpWarPluginExtension(GradleJnlpWarPlugin plugin, Project project) {
@@ -67,6 +70,11 @@ class GradleJnlpWarPluginExtension {
         closure()
     }
 
+    void launchers(Closure closure) {
+        closure.delegate = new Launchers(project)
+        closure()
+    }
+
     private class Versions {
         private Project project
 
@@ -78,6 +86,20 @@ class GradleJnlpWarPluginExtension {
         Object invokeMethod(String name, Object args) {
             project.configurations.maybeCreate(name)
             return project.dependencies.invokeMethod(name, args)
+        }
+    }
+
+    private class Launchers {
+        private Project project
+
+        Launchers(Project project) {
+            this.project = project
+        }
+
+        @Override
+        Object invokeMethod(String name, Object args) {
+            Configuration configuration = project.configurations.getByName(name)
+            return launchers.from(project.zipTree(configuration.singleFile))
         }
     }
 
