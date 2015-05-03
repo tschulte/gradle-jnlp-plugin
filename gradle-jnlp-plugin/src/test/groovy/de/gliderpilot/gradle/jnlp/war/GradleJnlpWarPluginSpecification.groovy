@@ -70,4 +70,19 @@ class GradleJnlpWarPluginSpecification extends AbstractPluginSpecification {
         project.jnlp.launchers.sourcePaths.size() == 2
     }
 
+    def "launchers can be further configured using closures"() {
+        when:
+        project.jnlp.launchers {
+            v1 {
+                rename 'launch.jnlp', 'launch_v1.jnlp'
+            }
+            v2 {
+                rename 'launch.jnlp', 'launch_v2.jnlp'
+            }
+        }
+
+        then:
+        project.jnlp.launchers.sourcePaths.size() == 2
+    }
+
 }

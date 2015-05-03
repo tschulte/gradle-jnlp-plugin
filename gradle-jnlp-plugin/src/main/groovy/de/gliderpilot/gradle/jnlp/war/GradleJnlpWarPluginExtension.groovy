@@ -99,7 +99,10 @@ class GradleJnlpWarPluginExtension {
         @Override
         Object invokeMethod(String name, Object args) {
             Configuration configuration = project.configurations.getByName(name)
-            return launchers.from(project.zipTree(configuration.singleFile))
+            def zipTree = project.zipTree(configuration.singleFile)
+            if (args && args[0] instanceof Closure)
+                return launchers.from(zipTree, args[0])
+            return launchers.from(zipTree)
         }
     }
 
