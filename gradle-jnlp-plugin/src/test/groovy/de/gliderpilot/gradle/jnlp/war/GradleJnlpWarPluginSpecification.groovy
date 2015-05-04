@@ -22,15 +22,10 @@ class GradleJnlpWarPluginSpecification extends AbstractPluginSpecification {
     def setupSpec() {
         project {
             apply plugin: 'de.gliderpilot.jnlp-war'
-            repositories {
-                jcenter()
-            }
             jnlp {
                 versions {
-                    v1 'org.swinglabs:jxlayer:3.0.1'
-                    v2 'org.swinglabs:jxlayer:3.0.2'
-                    v3 'org.swinglabs:jxlayer:3.0.3'
-                    v4 'org.swinglabs:jxlayer:3.0.4'
+                    v1 files(new File('build/resources/application-0.1.0.zip').absoluteFile.toURI())
+                    v2 files(new File('build/resources/application-0.1.1.zip').absoluteFile.toURI())
                 }
             }
         }
@@ -51,7 +46,7 @@ class GradleJnlpWarPluginSpecification extends AbstractPluginSpecification {
 
     def "the configuration v1 contains the defined dependency"() {
         expect:
-        project.configurations.v1.files.collect { it.name } == ['jxlayer-3.0.1.jar']
+        project.configurations.v1.files.collect { it.name } == ['application-0.1.0.zip']
     }
 
     def "configuration v2 is created"() {
@@ -61,7 +56,7 @@ class GradleJnlpWarPluginSpecification extends AbstractPluginSpecification {
 
     def "the configuration v2 contains the defined dependency"() {
         expect:
-        project.configurations.v2.files.collect { it.name } == ['jxlayer-3.0.2.jar']
+        project.configurations.v2.files.collect { it.name } == ['application-0.1.1.zip']
     }
 
     def "launchers can be defined with a method named after the version"() {
@@ -69,11 +64,10 @@ class GradleJnlpWarPluginSpecification extends AbstractPluginSpecification {
         project.jnlp.launchers {
             v1()
             v2()
-            v3()
         }
 
         then:
-        project.jnlp.launchers.sourcePaths.size() == 3
+        project.jnlp.launchers.sourcePaths.size() == 2
     }
 
 }
