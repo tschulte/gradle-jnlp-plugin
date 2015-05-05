@@ -59,6 +59,11 @@ class GradleJnlpWarPluginSpecification extends AbstractPluginSpecification {
         project.configurations.v2.files.collect { it.name } == ['application-0.1.1.zip']
     }
 
+    def "launchers are empty if not configured"() {
+        expect:
+        !project.jnlp.launchers.hasSource()
+    }
+
     def "launchers can be defined with a method named after the version"() {
         when:
         project.jnlp.launchers {
@@ -67,7 +72,7 @@ class GradleJnlpWarPluginSpecification extends AbstractPluginSpecification {
         }
 
         then:
-        project.jnlp.launchers.sourcePaths.size() == 2
+        project.jnlp.launchers.hasSource()
     }
 
     def "launchers can be further configured using closures"() {
@@ -82,7 +87,7 @@ class GradleJnlpWarPluginSpecification extends AbstractPluginSpecification {
         }
 
         then:
-        project.jnlp.launchers.sourcePaths.size() == 2
+        project.jnlp.launchers.hasSource()
     }
 
 }
