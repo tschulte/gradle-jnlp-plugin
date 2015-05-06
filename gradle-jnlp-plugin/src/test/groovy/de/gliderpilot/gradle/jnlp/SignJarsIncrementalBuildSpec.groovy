@@ -15,30 +15,19 @@
  */
 package de.gliderpilot.gradle.jnlp
 
+import nebula.test.IntegrationSpec
 import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-class SignJarsIncrementalBuildSpec extends AbstractPluginSpecification {
+class SignJarsIncrementalBuildSpec extends IntegrationSpec {
 
-    def setupSpec() {
-        IntegrationTestProject.enhance(project())
-        project.settingsFile << """\
-            rootProject.name = 'test'
-        """.stripIndent()
-        project.file('src/main/java/de/gliderpilot/jnlp/test').mkdirs()
-        project.file('src/main/java/de/gliderpilot/jnlp/test/Main.java') << """\
-            package de.gliderpilot.jnlp.test;
-            public class Main {
-                public static void main(String[] args) {
-                    System.out.println("test");
-                }
-            }
-        """.stripIndent()
+    def setup() {
+        writeHelloWorld('de.gliderpilot.jnlp.test')
     }
 
     def buildWithDependency(String dependency) {
-        project.buildFile.text = """\
+        buildFile.text = """\
             apply plugin: 'java'
             apply plugin: 'application'
             apply plugin: 'de.gliderpilot.jnlp'
@@ -67,7 +56,7 @@ class SignJarsIncrementalBuildSpec extends AbstractPluginSpecification {
             dependencies {
                 ${dependency ? "compile '$dependency'" : ""}
             }
-            mainClassName = 'de.gliderpilot.jnlp.test.Main'
+            mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
             task genkey << {
                 if (!file('keystore.ks').exists())
                     ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
@@ -75,7 +64,7 @@ class SignJarsIncrementalBuildSpec extends AbstractPluginSpecification {
             }
         """.stripIndent()
 
-        project.run ':genkey', ':createWebstartDir'
+        runTasksSuccessfully(':genkey', ':createWebstartDir')
     }
 
     def 'when version of dependency changes, the old version is removed from the lib directory'() {
@@ -86,7 +75,7 @@ class SignJarsIncrementalBuildSpec extends AbstractPluginSpecification {
         buildWithDependency 'org.swinglabs:jxlayer:3.0.4'
 
         then:
-        new File(project.buildDir, 'jnlp/lib').list().findAll { it.startsWith('jxlayer') }.size() == 1
+        directory('build/jnlp/lib').list().findAll { it.startsWith('jxlayer') }.size() == 1
     }
 
     def 'when dependency is removed, the old version is removed from the lib directory'() {
@@ -97,7 +86,7 @@ class SignJarsIncrementalBuildSpec extends AbstractPluginSpecification {
         buildWithDependency null
 
         then:
-        !new File(project.buildDir, 'jnlp/lib').list().findAll { it.startsWith('jxlayer') }
+        !directory('build/jnlp/lib').list().findAll { it.startsWith('jxlayer') }
     }
 
 }

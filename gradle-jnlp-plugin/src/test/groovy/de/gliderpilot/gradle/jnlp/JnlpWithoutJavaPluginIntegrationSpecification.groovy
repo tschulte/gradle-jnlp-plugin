@@ -15,18 +15,15 @@
  */
 package de.gliderpilot.gradle.jnlp
 
+import nebula.test.IntegrationSpec
 import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-class JnlpWithoutJavaPluginIntegrationSpecification extends AbstractPluginSpecification {
+class JnlpWithoutJavaPluginIntegrationSpecification extends IntegrationSpec {
 
-    @Shared
-    def jnlp
-
-    def setupSpec() {
-        IntegrationTestProject.enhance(project())
-        project.buildFile << """\
+    def setup() {
+        buildFile << """\
             apply plugin: 'de.gliderpilot.jnlp'
 
             buildscript {
@@ -49,47 +46,46 @@ class JnlpWithoutJavaPluginIntegrationSpecification extends AbstractPluginSpecif
                 jnlp 'org.codehaus.griffon:griffon-javafx:2.0.0.BETA3'
             }
         """.stripIndent()
-
-        project.settingsFile << """\
-            rootProject.name = 'test'
-        """.stripIndent()
-        project.run ':generateJnlp', ':copyJars'
-        def jnlpFile = project.file('build/jnlp/launch.jnlp')
-        jnlp = new XmlSlurper().parse(jnlpFile)
     }
 
     def 'generateJnlp task is executed'() {
         expect:
-        project.wasExecuted(':generateJnlp')
+        runTasksSuccessfully(':generateJnlp').standardOutput.contains(':generateJnlp')
     }
 
     def 'copyJars task is executed'() {
         expect:
-        project.wasExecuted(':copyJars')
+        runTasksSuccessfully(':copyJars').standardOutput.contains(':copyJars')
     }
 
     def 'jars entry is not empty'() {
-        when:
-        def jars = jnlp.resources.jar
-
-        then:
-        !jars.isEmpty()
+        expect:
+        !createJnlp().resources.jar.isEmpty()
     }
 
     def 'mandatory fields in information block are filled in the jnlp'() {
+        given:
+        def jnlp = createJnlp()
+
         expect:
-        jnlp.information.title.text() == project.name
-        jnlp.information.vendor.text() == project.name
+        jnlp.information.title.text() == moduleName
+        jnlp.information.vendor.text() == moduleName
     }
 
     def 'main-class is set'() {
         expect:
-        jnlp.'application-desc'.@'main-class'.text() == 'griffon.javafx.JavaFXGriffonApplication'
+        createJnlp().'application-desc'.@'main-class'.text() == 'griffon.javafx.JavaFXGriffonApplication'
     }
 
     def 'main-jar is marked'() {
         expect:
-        jnlp.resources.jar.find { it.@href =~ 'griffon-javafx' }.@main.text() == 'true'
+        createJnlp().resources.jar.find { it.@href =~ 'griffon-javafx' }.@main.text() == 'true'
+    }
+
+    private def createJnlp() {
+        runTasksSuccessfully(':generateJnlp')
+        def jnlpFile = file('build/jnlp/launch.jnlp')
+        new XmlSlurper().parse(jnlpFile)
     }
 
 }

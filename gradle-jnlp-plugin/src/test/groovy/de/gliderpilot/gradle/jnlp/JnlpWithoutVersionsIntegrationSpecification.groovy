@@ -15,18 +15,17 @@
  */
 package de.gliderpilot.gradle.jnlp
 
+import nebula.test.IntegrationSpec
 import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecification {
+class JnlpWithoutVersionsIntegrationSpecification extends IntegrationSpec {
 
-    @Shared
     def jnlp
 
-    def setupSpec() {
-        IntegrationTestProject.enhance(project())
-        project.buildFile << """\
+    def setup() {
+        buildFile << """\
             apply plugin: 'groovy'
             apply plugin: 'application'
             apply plugin: 'de.gliderpilot.jnlp'
@@ -44,6 +43,7 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
             }
 
             version = '1.0'
+            sourceCompatibility = '1.6'
             targetCompatibility = '1.6'
 
             repositories {
@@ -52,32 +52,18 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
             dependencies {
                 compile 'org.codehaus.groovy:groovy-all:2.3.1'
             }
-            mainClassName = 'de.gliderpilot.jnlp.test.Main'
+            mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
         """.stripIndent()
 
-        project.settingsFile << """\
-            rootProject.name = 'test'
-        """.stripIndent()
-        project.file('src/main/groovy/de/gliderpilot/jnlp/test').mkdirs()
-        project.file('src/main/groovy/de/gliderpilot/jnlp/test/Main.groovy') << """\
-            package de.gliderpilot.jnlp.test
-            class Main {
-                static main(args) {
-                    println "test"
-                }
-            }
-        """.stripIndent()
-        project.run ':generateJnlp', ':copyJars'
-        def jnlpFile = project.file('build/jnlp/launch.jnlp')
+        writeHelloWorld('de.gliderpilot.jnlp.test')
+        runTasksSuccessfully(':generateJnlp')
+        def jnlpFile = file('build/jnlp/launch.jnlp')
         jnlp = new XmlSlurper().parse(jnlpFile)
     }
 
     def 'jars entry is not empty'() {
-        when:
-        def jars = jnlp.resources.jar
-
-        then:
-        !jars.isEmpty()
+        expect:
+        !jnlp.resources.jar.isEmpty()
     }
 
     def 'j2se element is contains version information'() {
@@ -85,19 +71,20 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractPluginSpecific
         jnlp.resources.j2se.@version.text() == '1.6'
     }
 
-    def 'jar #artifact has version #version'() {
-        when:
-        def jar = jnlp.resources.jar.find { it.@href =~ /$artifact/ }
+    def 'jar groovy-all has version 2.3.1'() {
+        given:
+        def jar = jnlp.resources.jar.find { it.@href =~ /groovy-all/ }
 
-        then:
-        jar != null
-
-        and:
-        jar.@href.text() == "lib/${artifact}__V${version}.jar"
-
-        where:
-        artifact     | version
-        'groovy-all' | '2.3.1'
-        'test'       | '1.0'
+        expect:
+        jar.@href.text() == "lib/groovy-all__V2.3.1.jar"
     }
+
+    def 'jar of project has version 1.0'() {
+        given:
+        def jar = jnlp.resources.jar.find { it.@href =~ /$moduleName/ }
+
+        expect:
+        jar.@href.text() == "lib/${moduleName}__V1.0.jar"
+    }
+
 }

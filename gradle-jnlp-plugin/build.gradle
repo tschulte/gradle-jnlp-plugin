@@ -23,10 +23,9 @@ apply from: "$rootDir/gradle/code-quality.gradle"
 apply from: "$rootDir/gradle/code-coverage.gradle"
 
 dependencies {
-    compile localGroovy()
     compile gradleApi()
 	compile 'org.codehaus.gpars:gpars:1.2.1'
-	testCompile 'org.spockframework:spock-core:0.7-groovy-2.0', {
+	testCompile 'com.netflix.nebula:nebula-test:2.2.1', {
 		exclude module: 'groovy-all'
 	}
 }

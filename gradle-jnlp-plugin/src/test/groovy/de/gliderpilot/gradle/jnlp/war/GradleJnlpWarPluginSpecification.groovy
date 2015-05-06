@@ -15,13 +15,18 @@
  */
 package de.gliderpilot.gradle.jnlp.war
 
-import de.gliderpilot.gradle.jnlp.AbstractPluginSpecification
+import nebula.test.PluginProjectSpec
 
-class GradleJnlpWarPluginSpecification extends AbstractPluginSpecification {
+class GradleJnlpWarPluginSpecification extends PluginProjectSpec {
 
-    def setupSpec() {
-        project {
-            apply plugin: 'de.gliderpilot.jnlp-war'
+    @Override
+    String getPluginName() {
+        return 'de.gliderpilot.jnlp-war'
+    }
+
+    def setup() {
+        project.with {
+            apply plugin: pluginName
             jnlp {
                 versions {
                     v1 files(new File('build/resources/application-0.1.0.zip').absoluteFile.toURI())

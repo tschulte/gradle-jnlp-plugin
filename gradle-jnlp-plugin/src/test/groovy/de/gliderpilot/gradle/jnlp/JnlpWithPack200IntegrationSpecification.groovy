@@ -15,18 +15,19 @@
  */
 package de.gliderpilot.gradle.jnlp
 
+import nebula.test.IntegrationSpec
+import nebula.test.functional.ExecutionResult
 import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-class JnlpWithPack200IntegrationSpecification extends AbstractPluginSpecification {
+class JnlpWithPack200IntegrationSpecification extends IntegrationSpec {
 
-    @Shared
     def jnlp
+    ExecutionResult executionResult
 
-    def setupSpec() {
-        IntegrationTestProject.enhance(project())
-        project.buildFile << """\
+    def setup() {
+        buildFile << """\
             apply plugin: 'java'
             apply plugin: 'application'
             apply plugin: 'de.gliderpilot.jnlp'
@@ -59,38 +60,27 @@ class JnlpWithPack200IntegrationSpecification extends AbstractPluginSpecificatio
                 // jxlayer is already signed. This caused problems with usePack200
                 compile 'org.swinglabs:jxlayer:3.0.4'
             }
-            mainClassName = 'de.gliderpilot.jnlp.test.Main'
+            mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
             task genkey << {
                 ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
                            keystore: 'keystore.ks')
             }
         """.stripIndent()
 
-        project.settingsFile << """\
-            rootProject.name = 'test'
-        """.stripIndent()
-        project.file('src/main/java/de/gliderpilot/jnlp/test').mkdirs()
-        project.file('src/main/java/de/gliderpilot/jnlp/test/Main.java') << """\
-            package de.gliderpilot.jnlp.test;
-            public class Main {
-                public static void main(String[] args) {
-                    System.out.println("test");
-                }
-            }
-        """.stripIndent()
-        project.run ':genkey', ':createWebstartDir'
-        def jnlpFile = project.file('build/jnlp/launch.jnlp')
+        writeHelloWorld('de.gliderpilot.jnlp.test')
+        executionResult = runTasksSuccessfully(':genkey', ':createWebstartDir')
+        def jnlpFile = file('build/jnlp/launch.jnlp')
         jnlp = new XmlSlurper().parse(jnlpFile)
     }
 
     def 'generateJnlp task is executed'() {
         expect:
-        project.wasExecuted(':generateJnlp')
+        executionResult.wasExecuted(':generateJnlp')
     }
 
     def 'signJars task is executed'() {
         expect:
-        project.wasExecuted(':signJars')
+        executionResult.wasExecuted(':signJars')
     }
 
     def 'property jnlp.packEnabled is set to true'() {
@@ -99,11 +89,10 @@ class JnlpWithPack200IntegrationSpecification extends AbstractPluginSpecificatio
 
         then:
         property.@value.text() == 'true'
-
     }
 
     def 'jar file is packed with pack200'() {
         expect:
-        new File(project.buildDir, "jnlp/lib").list().sort() == ['jxlayer__V3.0.4.jar.pack.gz', 'test__V1.0.jar.pack.gz']
+        directory("build/jnlp/lib").list().sort() == ['jxlayer__V3.0.4.jar.pack.gz', "${moduleName}__V1.0.jar.pack.gz"].sort()
     }
 }

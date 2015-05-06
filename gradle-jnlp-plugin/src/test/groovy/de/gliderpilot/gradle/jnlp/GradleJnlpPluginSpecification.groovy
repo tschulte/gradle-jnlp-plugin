@@ -15,12 +15,17 @@
  */
 package de.gliderpilot.gradle.jnlp
 
-class GradleJnlpPluginSpecification extends AbstractPluginSpecification {
+import nebula.test.PluginProjectSpec
 
-    def setupSpec() {
-        project {
-            apply plugin: 'de.gliderpilot.jnlp'
-        }
+class GradleJnlpPluginSpecification extends PluginProjectSpec {
+
+    @Override
+    String getPluginName() {
+        return 'de.gliderpilot.jnlp'
+    }
+
+    def setup() {
+        project.apply plugin: pluginName
     }
 
     def "plugin was applied"() {

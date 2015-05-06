@@ -15,18 +15,19 @@
  */
 package de.gliderpilot.gradle.jnlp
 
+import nebula.test.IntegrationSpec
+import nebula.test.functional.ExecutionResult
 import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-class JnlpWithVersionsIntegrationSpecification extends AbstractPluginSpecification {
+class JnlpWithVersionsIntegrationSpecification extends IntegrationSpec {
 
-    @Shared
+    ExecutionResult executionResult
     def jnlp
 
-    def setupSpec() {
-        IntegrationTestProject.enhance(project())
-        project.buildFile << """\
+    def setup() {
+        buildFile << """\
             apply plugin: 'groovy'
             apply plugin: 'application'
             apply plugin: 'de.gliderpilot.jnlp'
@@ -52,34 +53,23 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractPluginSpecificati
             dependencies {
                 compile 'org.codehaus.groovy:groovy-all:2.3.1'
             }
-            mainClassName = 'de.gliderpilot.jnlp.test.Main'
+            mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
         """.stripIndent()
 
-        project.settingsFile << """\
-            rootProject.name = 'test'
-        """.stripIndent()
-        project.file('src/main/groovy/de/gliderpilot/jnlp/test').mkdirs()
-        project.file('src/main/groovy/de/gliderpilot/jnlp/test/Main.groovy') << """\
-            package de.gliderpilot.jnlp.test
-            class Main {
-                static main(args) {
-                    println "test"
-                }
-            }
-        """.stripIndent()
-        project.run ':generateJnlp', ':copyJars'
-        def jnlpFile = project.file('build/jnlp/launch.jnlp')
+        writeHelloWorld('de.gliderpilot.jnlp.test')
+        executionResult = runTasksSuccessfully(':generateJnlp', ':copyJars')
+        def jnlpFile = file('build/jnlp/launch.jnlp')
         jnlp = new XmlSlurper().parse(jnlpFile)
     }
 
     def 'generateJnlp task is executed'() {
         expect:
-        project.wasExecuted(':generateJnlp')
+        executionResult.wasExecuted(':generateJnlp')
     }
 
     def 'copyJars task is executed'() {
         expect:
-        project.wasExecuted(':copyJars')
+        executionResult.wasExecuted(':copyJars')
     }
 
     def 'jars entry is not empty'() {
@@ -92,27 +82,30 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractPluginSpecificati
 
     def 'mandatory fields in information block are filled in the jnlp'() {
         expect:
-        jnlp.information.title.text() == project.name
-        jnlp.information.vendor.text() == project.name
+        jnlp.information.title.text() == moduleName
+        jnlp.information.vendor.text() == moduleName
     }
 
-    def 'jar #artifact has version #version'() {
-        when:
-        def jar = jnlp.resources.jar.find { it.@href =~ /$artifact/ }
+    def 'jar groovy-all has version 2.3.1'() {
+        given:
+        def jar = jnlp.resources.jar.find { it.@href =~ /groovy-all/ }
 
-        then:
-        jar != null
-
-        and:
-        jar.@version.text() == version
+        expect:
+        jar.@version.text() == '2.3.1'
 
         and:
-        jar.@href.text() == "lib/${artifact}.jar"
+        jar.@href.text() == "lib/groovy-all.jar"
+    }
 
-        where:
-        artifact     | version
-        'groovy-all' | '2.3.1'
-        'test'       | '1.0'
+    def 'jar of project has version 1.0'() {
+        given:
+        def jar = jnlp.resources.jar.find { it.@href =~ /$moduleName/ }
+
+        expect:
+        jar.@version.text() == '1.0'
+
+        and:
+        jar.@href.text() == "lib/${moduleName}.jar"
     }
 
     def 'property jnlp.versionEnabled is set to true'() {
@@ -126,19 +119,19 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractPluginSpecificati
 
     def 'jars are copied'() {
         expect:
-        project.file('build/jnlp/lib').list { file, name -> name.endsWith '.jar' }.sort() == [
+        directory('build/jnlp/lib').list { file, name -> name.endsWith '.jar' }.sort() == [
             'groovy-all__V2.3.1.jar',
-            'test__V1.0.jar'
+            "${moduleName}__V1.0.jar"
         ]
     }
 
     def 'main-class is set'() {
         expect:
-        jnlp.'application-desc'.@'main-class'.text() == 'de.gliderpilot.jnlp.test.Main'
+        jnlp.'application-desc'.@'main-class'.text() == 'de.gliderpilot.jnlp.test.HelloWorld'
     }
 
     def 'main-jar is marked'() {
         expect:
-        jnlp.resources.jar.find { it.@href =~ 'test' }.@main.text() == 'true'
+        jnlp.resources.jar.find { it.@href =~ "$moduleName" }.@main.text() == 'true'
     }
 }
