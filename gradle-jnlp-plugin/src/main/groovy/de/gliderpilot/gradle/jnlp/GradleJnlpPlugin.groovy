@@ -57,6 +57,10 @@ class GradleJnlpPlugin implements Plugin<Project> {
                     from project.tasks.createWebstartDir
                 }
             }
+            project.configurations.create("webstartZip")
+            project.artifacts {
+                webstartZip project.tasks.webstartDistZip
+            }
         }
     }
 }

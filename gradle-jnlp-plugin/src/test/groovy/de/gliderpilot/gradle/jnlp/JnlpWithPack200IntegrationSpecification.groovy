@@ -32,19 +32,6 @@ class JnlpWithPack200IntegrationSpecification extends IntegrationSpec {
             apply plugin: 'application'
             apply plugin: 'de.gliderpilot.jnlp'
 
-            //apply plugin: 'jetty'
-
-            buildscript {
-                repositories {
-                    jcenter()
-                }
-                dependencies {
-                    classpath 'org.codehaus.gpars:gpars:1.2.1'
-                    classpath files('${new File('build/classes/main').absoluteFile.toURI()}')
-                    classpath files('${new File('build/resources/main').absoluteFile.toURI()}')
-                }
-            }
-
             jnlp {
                 usePack200 = true
                 signJarParams = [alias: 'myalias', storepass: 'mystorepass',
@@ -61,14 +48,12 @@ class JnlpWithPack200IntegrationSpecification extends IntegrationSpec {
                 compile 'org.swinglabs:jxlayer:3.0.4'
             }
             mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
-            task genkey << {
-                ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
-                           keystore: 'keystore.ks')
-            }
+            ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
+                       keystore: 'keystore.ks')
         """.stripIndent()
 
         writeHelloWorld('de.gliderpilot.jnlp.test')
-        executionResult = runTasksSuccessfully(':genkey', ':createWebstartDir')
+        executionResult = runTasksSuccessfully(':createWebstartDir')
         def jnlpFile = file('build/jnlp/launch.jnlp')
         jnlp = new XmlSlurper().parse(jnlpFile)
     }

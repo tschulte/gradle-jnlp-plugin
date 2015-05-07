@@ -32,17 +32,6 @@ class SignJarsIncrementalBuildSpec extends IntegrationSpec {
             apply plugin: 'application'
             apply plugin: 'de.gliderpilot.jnlp'
 
-            buildscript {
-                repositories {
-                    jcenter()
-                }
-                dependencies {
-                    classpath 'org.codehaus.gpars:gpars:1.2.1'
-                    classpath files('${new File('build/classes/main').absoluteFile.toURI()}')
-                    classpath files('${new File('build/resources/main').absoluteFile.toURI()}')
-                }
-            }
-
             jnlp {
                 signJarParams = [alias: 'myalias', storepass: 'mystorepass',
                     keystore: 'file:keystore.ks']
@@ -57,14 +46,12 @@ class SignJarsIncrementalBuildSpec extends IntegrationSpec {
                 ${dependency ? "compile '$dependency'" : ""}
             }
             mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
-            task genkey << {
-                if (!file('keystore.ks').exists())
-                    ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
-                               keystore: 'keystore.ks')
-            }
+            if (!file('keystore.ks').exists())
+                ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
+                           keystore: 'keystore.ks')
         """.stripIndent()
 
-        runTasksSuccessfully(':genkey', ':createWebstartDir')
+        runTasksSuccessfully(':createWebstartDir')
     }
 
     def 'when version of dependency changes, the old version is removed from the lib directory'() {

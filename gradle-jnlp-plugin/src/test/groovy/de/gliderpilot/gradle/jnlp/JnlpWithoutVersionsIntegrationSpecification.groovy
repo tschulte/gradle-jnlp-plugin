@@ -29,14 +29,6 @@ class JnlpWithoutVersionsIntegrationSpecification extends IntegrationSpec {
             apply plugin: 'groovy'
             apply plugin: 'application'
             apply plugin: 'de.gliderpilot.jnlp'
-            //apply plugin: 'jetty'
-
-            buildscript {
-                dependencies {
-                    classpath files('${new File('build/classes/main').absoluteFile.toURI()}')
-                    classpath files('${new File('build/resources/main').absoluteFile.toURI()}')
-                }
-            }
 
             jnlp {
                 useVersions = false

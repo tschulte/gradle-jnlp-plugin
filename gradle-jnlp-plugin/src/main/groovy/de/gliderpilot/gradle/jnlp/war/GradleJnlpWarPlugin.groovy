@@ -17,6 +17,7 @@ package de.gliderpilot.gradle.jnlp.war
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.WarPlugin
 
 /**
  * This is the main plugin file. Put a description of your plugin here.
@@ -24,6 +25,15 @@ import org.gradle.api.Project
 class GradleJnlpWarPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        def jnlp = project.extensions.create('jnlp', GradleJnlpWarPluginExtension, this, project)
+        project.apply plugin: 'war'
+        def jnlp = project.extensions.create('jnlpWar', GradleJnlpWarPluginExtension, this, project)
+        project.war {
+            with jnlp.launchers
+            doFirst {
+                jnlp.launchers.eachFile {
+                    it.path = it.path.replaceAll('.*?/(.*)', '$1')
+                }
+            }
+        }
     }
 }

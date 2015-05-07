@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.gliderpilot.gradle.jnlp.war
+package de.gliderpilot.gradle.jnlpWar.war
 
+import de.gliderpilot.gradle.jnlp.war.GradleJnlpWarPlugin
 import nebula.test.PluginProjectSpec
 
 class GradleJnlpWarPluginSpecification extends PluginProjectSpec {
@@ -27,7 +28,7 @@ class GradleJnlpWarPluginSpecification extends PluginProjectSpec {
     def setup() {
         project.with {
             apply plugin: pluginName
-            jnlp {
+            jnlpWar {
                 versions {
                     v1 files(new File('build/resources/application-0.1.0.zip').absoluteFile.toURI())
                     v2 files(new File('build/resources/application-0.1.1.zip').absoluteFile.toURI())
@@ -51,7 +52,7 @@ class GradleJnlpWarPluginSpecification extends PluginProjectSpec {
 
     def "the configuration v1 contains the defined dependency"() {
         expect:
-        project.configurations.v1.files.collect { it.name } == ['application-0.1.0.zip']
+        project.configurations.v1.singleFile.name == 'application-0.1.0.zip'
     }
 
     def "configuration v2 is created"() {
@@ -61,28 +62,28 @@ class GradleJnlpWarPluginSpecification extends PluginProjectSpec {
 
     def "the configuration v2 contains the defined dependency"() {
         expect:
-        project.configurations.v2.files.collect { it.name } == ['application-0.1.1.zip']
+        project.configurations.v2.singleFile.name == 'application-0.1.1.zip'
     }
 
     def "launchers are empty if not configured"() {
         expect:
-        !project.jnlp.launchers.hasSource()
+        !project.jnlpWar.launchers.hasSource()
     }
 
     def "launchers can be defined with a method named after the version"() {
         when:
-        project.jnlp.launchers {
+        project.jnlpWar.launchers {
             v1()
             v2()
         }
 
         then:
-        project.jnlp.launchers.hasSource()
+        project.jnlpWar.launchers.hasSource()
     }
 
     def "launchers can be further configured using closures"() {
         when:
-        project.jnlp.launchers {
+        project.jnlpWar.launchers {
             v1 {
                 rename 'launch.jnlp', 'launch_v1.jnlp'
             }
@@ -92,7 +93,38 @@ class GradleJnlpWarPluginSpecification extends PluginProjectSpec {
         }
 
         then:
-        project.jnlp.launchers.hasSource()
+        project.jnlpWar.launchers.hasSource()
+    }
+
+    def "launchers can be further refined after creation"() {
+        when:
+        project.jnlpWar.launchers {
+            v1()
+            v1 {
+                rename 'launch.jnlp', 'launch_v1.jnlp'
+            }
+        }
+
+        then:
+        project.jnlpWar.launchers.hasSource()
+    }
+
+    def "extension.from is alias for versions and launchers with version"() {
+        when:
+        project.version = '1.0'
+        addSubproject('application').with {
+            version = '1.0'
+            apply plugin: 'de.gliderpilot.jnlp'
+            apply plugin: 'application'
+            mainClassName = 'Main'
+        }
+        project.jnlpWar {
+            from project(':application')
+        }
+
+        then:
+        project.configurations.findByName("1.0")
+        project.jnlpWar.launchers.hasSource()
     }
 
 }

@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.FileCopyDetails
 
 import javax.inject.Inject
 
@@ -55,14 +56,31 @@ class GradleJnlpWarPluginExtension {
 
     final CopySpec launchers
 
+    private Map
+
     @Inject
     GradleJnlpWarPluginExtension(GradleJnlpWarPlugin plugin, Project project) {
         this.plugin = plugin
         this.project = project
-        launchers = project.copySpec {
+        launchers = project.copySpec { CopySpec copySpec ->
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             includeEmptyDirs = false
         }
+    }
+
+    Project project(String path) {
+        project.project(path)
+    }
+
+    void from(Project jnlpProject) {
+        def webstartZipTask = jnlpProject.tasks.getByName('webstartDistZip')
+        versions {
+            "${jnlpProject.version}" project.dependencies.project(path: jnlpProject.path, configuration: 'webstartZip')
+        }
+        launchers {
+            "${jnlpProject.version}"()
+        }
+        project.war.dependsOn webstartZipTask
     }
 
     void versions(Closure closure) {
@@ -90,6 +108,7 @@ class GradleJnlpWarPluginExtension {
     }
 
     private class Launchers {
+
         private Project project
 
         Launchers(Project project) {
@@ -100,9 +119,47 @@ class GradleJnlpWarPluginExtension {
         Object invokeMethod(String name, Object args) {
             Configuration configuration = project.configurations.getByName(name)
             def zipTree = project.zipTree(configuration.singleFile)
-            if (args && args[0] instanceof Closure)
-                return launchers.from(zipTree, args[0])
-            return launchers.from(zipTree)
+
+            Launcher launcher = new Launcher()
+
+            CopySpec jnlpFileSpec = project.copySpec {
+                from zipTree
+                include '**/*.jnlp'
+                filter launcher.filterJnlpFiles
+            }
+            CopySpec nonJnlpFileSpec = project.copySpec {
+                from zipTree
+                exclude '**/*.jnlp'
+            }
+            if (args) {
+                Closure closure = args[0]
+                closure.delegate = launcher
+                closure.resolveStrategy = Closure.DELEGATE_ONLY
+                closure()
+            }
+            return launchers.with(jnlpFileSpec, nonJnlpFileSpec)
+        }
+    }
+
+    private class Launcher {
+
+        String oldJnlpFileName
+        String newJnlpFileName
+
+        def filterJnlpFiles = { line ->
+            if (oldJnlpFileName && newJnlpFileName)
+                line = line.replace(oldJnlpFileName, newJnlpFileName)
+            line.contains('jnlp.versionEnabled') || line.contains('jnlp.packEnabled') ? '' : line
+        }
+
+        @Override
+        Object invokeMethod(String name, Object args) {
+            if (name == 'rename') {
+                oldJnlpFileName = args[0]
+                newJnlpFileName = args[1]
+                return null
+            }
+            return super.invokeMethod(name, args)
         }
     }
 

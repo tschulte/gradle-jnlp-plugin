@@ -26,13 +26,6 @@ class JnlpWithoutJavaPluginIntegrationSpecification extends IntegrationSpec {
         buildFile << """\
             apply plugin: 'de.gliderpilot.jnlp'
 
-            buildscript {
-                dependencies {
-                    classpath files('${new File('build/classes/main').absoluteFile.toURI()}')
-                    classpath files('${new File('build/resources/main').absoluteFile.toURI()}')
-                }
-            }
-
             jnlp {
                 mainClassName = 'griffon.javafx.JavaFXGriffonApplication'
             }
