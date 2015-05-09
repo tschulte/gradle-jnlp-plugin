@@ -26,14 +26,6 @@ class GradleJnlpWarPlugin implements Plugin<Project> {
 
     void apply(Project project) {
         project.apply plugin: 'war'
-        def jnlp = project.extensions.create('jnlpWar', GradleJnlpWarPluginExtension, this, project)
-        project.war {
-            with jnlp.launchers
-            doFirst {
-                jnlp.launchers.eachFile {
-                    it.path = it.path.replaceAll('.*?/(.*)', '$1')
-                }
-            }
-        }
+        project.extensions.create('jnlpWar', GradleJnlpWarPluginExtension, project)
     }
 }

@@ -23,7 +23,6 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
     File warBuildFile
 
     def setup() {
-        fork = true
         writeHelloWorld('de.gliderpilot.gradle.jnlp.test')
         buildFile << '''\
             apply plugin: 'application'
@@ -34,7 +33,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
             publishing {
                 repositories {
                     maven {
-                        url "$buildDir/repo"
+                        url "repo"
                     }
                 }
                 publications {
@@ -50,28 +49,28 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                 signJarParams = [alias: 'myalias', storepass: 'mystorepass',
                     keystore: 'file:keystore.ks']
             }
+            project(':war') { warProject ->
+                apply plugin: 'de.gliderpilot.jnlp-war'
+                repositories {
+                    maven {
+                        url "$rootDir/repo"
+                    }
+                }
+                jnlpWar {
+                    from rootProject
+                }
+                task unzipWar(type: Sync) {
+                    from zipTree(war.outputs.files.singleFile)
+                    into "build/tmp/warContent"
+                }
+                war.finalizedBy unzipWar
+            }
             if (!file('keystore.ks').exists())
                 ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
                            keystore: 'keystore.ks')
         '''.stripIndent()
         warBuildFile = new File(addSubproject('war'), 'build.gradle')
-        warBuildFile << '''\
-            apply plugin: 'de.gliderpilot.jnlp-war'
-            repositories {
-                maven {
-                    url "$rootDir/build/repo"
-                }
-            }
-            jnlpWar {
-                from rootProject
-            }
-            task unzipWar(type: Sync) {
-                from zipTree(war.outputs.files.singleFile)
-                into "build/tmp/warContent"
-            }
-            war.finalizedBy unzipWar
-        '''.stripIndent()
-        setVersion("1.0")
+        version = "1.0"
     }
 
     def setVersion(String version) {
@@ -88,13 +87,82 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
         fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0.jar.pack.gz")
     }
 
-    @Ignore("not yet ready")
+    def "war can also contain old version and rename works"() {
+        when:
+        runTasksSuccessfully('publish')
+        version = '1.1'
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.0" "$rootProject.group:$rootProject.name:1.0:webstart@zip"
+                }
+                launchers {
+                    "1.0" {
+                        rename "launch.jnlp", "launch-1.0.jnlp"
+                    }
+                }
+            }
+        '''
+        runTasksSuccessfully("build")
+
+        then:
+        fileExists("war/build/libs/war-1.1.war")
+        fileExists("war/build/tmp/warContent/launch.jnlp")
+        fileExists("war/build/tmp/warContent/launch-1.0.jnlp")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.1.jar.pack.gz")
+    }
+
+    def "incremental build works"() {
+        when:
+        runTasksSuccessfully('publish')
+
+        version = '1.1'
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.0" "$rootProject.group:$rootProject.name:1.0:webstart@zip"
+                }
+                launchers {
+                    "1.0" {
+                        rename "launch.jnlp", "launch-1.0.jnlp"
+                    }
+                }
+            }
+        '''
+        runTasksSuccessfully('publish')
+
+        version = '1.2'
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.1" "$rootProject.group:$rootProject.name:1.1:webstart@zip"
+                }
+                launchers {
+                    "1.1" {
+                        rename "launch.jnlp", "launch-1.1.jnlp"
+                    }
+                }
+            }
+        '''
+        runTasksSuccessfully("build")
+
+        then:
+        fileExists("war/build/libs/war-1.2.war")
+        fileExists("war/build/tmp/warContent/launch.jnlp")
+        !fileExists("war/build/tmp/warContent/launch-1.0.jnlp")
+        fileExists("war/build/tmp/warContent/launch-1.1.jnlp")
+        !fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.1.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.2.jar.pack.gz")
+    }
+
     def "launcher for project can be further refined"() {
         setup:
         runTasksSuccessfully(':publish')
         setVersion("1.1")
 
-        warBuildFile << '''
+        warBuildFile.text = '''\
             jnlpWar {
                 versions {
                     "1.0" "${rootProject.group}:${rootProject.name}:1.0:webstart@zip"
@@ -113,7 +181,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
         expect:
         runTasksSuccessfully("build")
         fileExists("war/build/libs/war-1.1.war")
-        fileExists("war/build/tmp/warContent/launch.jnlp")
+        fileExists("war/build/tmp/warContent/launch-1.0.jnlp")
         fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0.jar.pack.gz")
     }
 

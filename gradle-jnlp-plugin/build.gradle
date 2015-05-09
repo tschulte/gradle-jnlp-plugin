@@ -23,7 +23,7 @@ apply from: "$rootDir/gradle/code-quality.gradle"
 apply from: "$rootDir/gradle/code-coverage.gradle"
 
 dependencies {
-    compile gradleApi()
+	compile files(gradleApi().resolve().findAll { !it.name.startsWith('xerces') && !it.name.startsWith('xml-apis') })
 	compile 'org.codehaus.gpars:gpars:1.2.1'
 	testCompile 'com.netflix.nebula:nebula-test:2.2.1', {
 		exclude module: 'groovy-all'
