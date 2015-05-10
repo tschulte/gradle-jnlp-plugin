@@ -38,7 +38,9 @@ class JnlpTask extends DefaultTask {
 
     @TaskAction
     void generateJnlp() {
-        MarkupBuilder xml = new MarkupBuilder(getJnlpFile().newPrintWriter('UTF-8'))
+        def outputFile = jnlpFile
+        outputFile.parentFile.eachFileMatch(~/.*\.jnlp/) { it.delete() }
+        MarkupBuilder xml = new MarkupBuilder(outputFile.newPrintWriter('UTF-8'))
         xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
         xml.jnlp(project.jnlp.jnlpParams) {
             delegate.with project.jnlp.withXmlClosure
