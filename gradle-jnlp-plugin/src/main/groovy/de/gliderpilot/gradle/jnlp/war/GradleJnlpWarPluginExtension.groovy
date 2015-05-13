@@ -17,6 +17,7 @@ package de.gliderpilot.gradle.jnlp.war
 
 import groovy.transform.PackageScope
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
@@ -59,6 +60,20 @@ class GradleJnlpWarPluginExtension {
 
     Map<Configuration, Launcher> launchers = [:].withDefault {
         new Launcher(it)
+    }
+
+    // key is the launcher, value is the jardiff task
+    Map<Configuration, Task> jardiffTasks = [:].withDefault { configuration ->
+        def task = project.task("create${configuration.name.capitalize()}Jardiffs", type: JarDiffTask) {
+            into "$project.buildDir/tmp/jardiff/$configuration.name"
+            newVersion configuration
+        }
+        project.war {
+            from(task.outputs.files) {
+                into 'lib'
+            }
+        }
+        task
     }
 
     @Inject
@@ -146,6 +161,11 @@ class GradleJnlpWarPluginExtension {
             newJnlpFileName = to
         }
 
+        void jardiff(Closure closure) {
+            closure.delegate = new JarDiff(configuration)
+            closure()
+        }
+
         void resolve() {
             def zipTree = project.zipTree(configuration.singleFile)
             launchersSpec.from(zipTree) {
@@ -156,6 +176,25 @@ class GradleJnlpWarPluginExtension {
             }
             launchersSpec.from(zipTree) {
                 exclude '**/*.jnlp'
+            }
+        }
+
+    }
+
+    private class JarDiff {
+        Configuration configuration
+
+        JarDiff(Configuration configuration) {
+            this.configuration = configuration
+        }
+
+        void from(String... versions) {
+            from(versions.collect { project.configurations."$it" } as Configuration[])
+        }
+
+        void from(Configuration... versions) {
+            versions.each {
+                jardiffTasks[configuration].oldVersion it
             }
         }
 

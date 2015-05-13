@@ -185,5 +185,85 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
         fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0.jar.pack.gz")
     }
 
+    def "jardiffs are created"() {
+        when:
+        runTasksSuccessfully('publish')
+        version = '1.1'
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.0" "$rootProject.group:$rootProject.name:1.0:webstart@zip"
+                }
+                launchers {
+                    "1.1" {
+                        jardiff {
+                            from "1.0"
+                        }
+                    }
+                }
+            }
+        '''
+        runTasksSuccessfully("build")
 
+        then:
+        fileExists("war/build/libs/war-1.1.war")
+        fileExists("war/build/tmp/warContent/launch.jnlp")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0__V1.1.diff.jar.pack.gz")
+    }
+
+    def "no exception with jardiff and new dependency"() {
+        when:
+        runTasksSuccessfully('publish')
+        version = '1.1'
+        new File(addSubproject('sub'), 'build.gradle') << 'apply plugin: "java"'
+        buildFile << 'dependencies { compile project(":sub") }'
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.0" "$rootProject.group:$rootProject.name:1.0:webstart@zip"
+                }
+                launchers {
+                    "1.1" {
+                        jardiff {
+                            from "1.0"
+                        }
+                    }
+                }
+            }
+        '''
+        runTasksSuccessfully("build")
+
+        then:
+        fileExists("war/build/libs/war-1.1.war")
+        fileExists("war/build/tmp/warContent/launch.jnlp")
+        fileExists("war/build/tmp/warContent/lib/sub__V1.1.jar.pack.gz")
+    }
+
+    def "no exception with jardiff and removed dependency"() {
+        when:
+        runTasksSuccessfully('publish')
+        version = '1.1'
+        new File(addSubproject('sub'), 'build.gradle') << 'apply plugin: "java"'
+        buildFile << 'dependencies { compile project(":sub") }'
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.0" "$rootProject.group:$rootProject.name:1.0:webstart@zip"
+                }
+                launchers {
+                    "1.0" {
+                        jardiff {
+                            from "1.1"
+                        }
+                    }
+                }
+            }
+        '''
+        runTasksSuccessfully("build")
+
+        then:
+        fileExists("war/build/libs/war-1.1.war")
+        fileExists("war/build/tmp/warContent/launch.jnlp")
+        fileExists("war/build/tmp/warContent/lib/sub__V1.1.jar.pack.gz")
+    }
 }
