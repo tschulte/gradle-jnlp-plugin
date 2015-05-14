@@ -67,7 +67,7 @@ class GradleJnlpWarPluginSpecification extends PluginProjectSpec {
 
     def "launchers are empty if not configured"() {
         expect:
-        !project.jnlpWar.launchers.hasSource()
+        project.jnlpWar.launchers.isEmpty()
     }
 
     def "launchers can be defined with a method named after the version"() {
@@ -78,7 +78,9 @@ class GradleJnlpWarPluginSpecification extends PluginProjectSpec {
         }
 
         then:
-        project.jnlpWar.launchers.hasSource()
+        project.jnlpWar.launchers.size() == 2
+        project.jnlpWar.launchers.keySet().contains(project.configurations.v1)
+        project.jnlpWar.launchers.keySet().contains(project.configurations.v2)
     }
 
     def "launchers can be further configured using closures"() {
@@ -93,7 +95,7 @@ class GradleJnlpWarPluginSpecification extends PluginProjectSpec {
         }
 
         then:
-        project.jnlpWar.launchers.hasSource()
+        project.jnlpWar.launchers.size() == 2
     }
 
     def "launchers can be further refined after creation"() {
@@ -106,7 +108,7 @@ class GradleJnlpWarPluginSpecification extends PluginProjectSpec {
         }
 
         then:
-        project.jnlpWar.launchers.hasSource()
+        project.jnlpWar.launchers.size() == 1
     }
 
     def "extension.from is alias for versions and launchers with version"() {
@@ -118,13 +120,15 @@ class GradleJnlpWarPluginSpecification extends PluginProjectSpec {
             apply plugin: 'application'
             mainClassName = 'Main'
         }
-        project.jnlpWar {
-            from project(':application')
+        project.with {
+            jnlpWar {
+                from project(':application')
+            }
         }
 
         then:
         project.configurations.findByName("1.0")
-        project.jnlpWar.launchers.hasSource()
+        project.jnlpWar.launchers.size() == 1
     }
 
 }
