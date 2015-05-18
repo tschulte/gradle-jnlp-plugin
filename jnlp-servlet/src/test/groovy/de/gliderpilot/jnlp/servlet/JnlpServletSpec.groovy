@@ -20,7 +20,7 @@ import spock.lang.Specification
 /**
  * Created by tobias on 4/12/15.
  */
-class JnlpJarServletSpec extends Specification {
+class JnlpServletSpec extends Specification {
 
     def "non version based download does work"() {
         when:
@@ -98,6 +98,24 @@ class JnlpJarServletSpec extends Specification {
 
         then:
         connection.responseCode == HttpURLConnection.HTTP_NOT_FOUND
+    }
+
+    def "special values are substituted in jnlp files"() {
+        when:
+        def connection = download("jnlp/launch.jnlp")
+
+        then:
+        connection.responseCode == HttpURLConnection.HTTP_OK
+
+        when:
+        def jnlp = new XmlSlurper().parse(connection.inputStream)
+
+        then:
+        jnlp.@href == 'launch.jnlp'
+        jnlp.@codebase == 'http://localhost:8080/jnlp-servlet/jnlp/'
+        jnlp.resources.property.find { it.@name == 'jnlp.context' }.@value == 'http://localhost:8080/jnlp-servlet'
+        jnlp.resources.property.find { it.@name == 'jnlp.site' }.@value == 'http://localhost:8080'
+        jnlp.resources.property.find { it.@name == 'jnlp.hostname' }.@value == 'localhost'
     }
 
     private HttpURLConnection download(String file) {

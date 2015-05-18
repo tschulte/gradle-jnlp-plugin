@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jnlp spec='7.0' href='$$name' codebase='$$codebase' version='1.0'>
+  <information>
+    <title>incremental-build-works</title>
+    <vendor>de.gliderpilot.gradle.jnlp.test</vendor>
+  </information>
+  <resources>
+    <j2se version='1.8' />
+    <jar href='lib/incremental-build-works.jar' version='1.0' main='true' />
+    <property name='jnlp.versionEnabled' value='true' />
+    <property name='jnlp.packEnabled' value='true' />
+      <property name='jnlp.context' value='$$context' />
+      <property name='jnlp.site' value='$$site' />
+      <property name='jnlp.hostname' value='$$hostname' />
+  </resources>
+  <application-desc main-class='de.gliderpilot.gradle.jnlp.test.HelloWorld' />
+</jnlp>
