@@ -89,7 +89,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
 
     def "war can also contain old version and rename works"() {
         when:
-        runTasksSuccessfully('publish')
+        runTasksSuccessfully('build', 'publish')
         version = '1.1'
         warBuildFile.text = '''\
             jnlpWar {
@@ -115,7 +115,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
 
     def "incremental build works"() {
         when:
-        runTasksSuccessfully('publish')
+        runTasksSuccessfully('build', 'publish')
 
         version = '1.1'
         warBuildFile.text = '''\
@@ -130,7 +130,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                 }
             }
         '''
-        runTasksSuccessfully('publish')
+        runTasksSuccessfully('build', 'publish')
 
         version = '1.2'
         warBuildFile.text = '''\
@@ -145,21 +145,40 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                 }
             }
         '''
-        runTasksSuccessfully("build")
+        runTasksSuccessfully("build", 'publish')
+
+        version = '1.3'
+        runTasksSuccessfully('build', 'publish')
+
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.2" "$rootProject.group:$rootProject.name:1.2:webstart@zip"
+                }
+                launchers {
+                    "1.2" {
+                        rename "launch.jnlp", "launch-1.2.jnlp"
+                    }
+                }
+            }
+        '''
+        runTasksSuccessfully("build", 'publish')
 
         then:
-        fileExists("war/build/libs/war-1.2.war")
+        fileExists("war/build/libs/war-1.3.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
         !fileExists("war/build/tmp/warContent/launch-1.0.jnlp")
-        fileExists("war/build/tmp/warContent/launch-1.1.jnlp")
+        !fileExists("war/build/tmp/warContent/launch-1.1.jnlp")
+        fileExists("war/build/tmp/warContent/launch-1.2.jnlp")
         !fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0.jar.pack.gz")
-        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.1.jar.pack.gz")
+        !fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.1.jar.pack.gz")
         fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.2.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.3.jar.pack.gz")
     }
 
     def "launcher for project can be further refined"() {
         setup:
-        runTasksSuccessfully(':publish')
+        runTasksSuccessfully('build', 'publish')
         setVersion("1.1")
 
         warBuildFile.text = '''\
@@ -187,7 +206,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
 
     def "jardiffs are created"() {
         when:
-        runTasksSuccessfully('publish')
+        runTasksSuccessfully('build', 'publish')
         version = '1.1'
         warBuildFile.text = '''\
             jnlpWar {
@@ -213,7 +232,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
 
     def "no exception with jardiff and new dependency"() {
         when:
-        runTasksSuccessfully('publish')
+        runTasksSuccessfully('build', 'publish')
         version = '1.1'
         new File(addSubproject('sub'), 'build.gradle') << 'apply plugin: "java"'
         buildFile << 'dependencies { compile project(":sub") }'
@@ -241,7 +260,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
 
     def "no exception with jardiff and removed dependency"() {
         when:
-        runTasksSuccessfully('publish')
+        runTasksSuccessfully('build', 'publish')
         version = '1.1'
         new File(addSubproject('sub'), 'build.gradle') << 'apply plugin: "java"'
         buildFile << 'dependencies { compile project(":sub") }'

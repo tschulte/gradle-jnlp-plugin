@@ -154,6 +154,7 @@ class GradleJnlpWarPluginExtension {
 
         Launcher(Configuration configuration) {
             this.configuration = configuration
+            project.war.inputs.files configuration
         }
 
         void rename(String from, String to) {
