@@ -89,6 +89,68 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
         file("war/build/tmp/warContent/WEB-INF/lib/").listFiles({ it.name.startsWith('jnlp-servlet-') } as FileFilter)
     }
 
+    def 'codebase and href are set to $$codebase and $$name'() {
+        when:
+        runTasksSuccessfully('build')
+        def jnlp = new XmlSlurper().parse(file('war/build/tmp/warContent/launch.jnlp'))
+
+        then:
+        jnlp.@href.text() == '$$name'
+        and:
+        jnlp.@codebase.text() == '$$codebase'
+    }
+
+    def 'codebase is changed to $$codebase'() {
+        when:
+        buildFile << '''\
+            jnlp {
+                codebase 'http://example.com'
+            }
+        '''.stripIndent()
+        runTasksSuccessfully('build')
+        def jnlp = new XmlSlurper().parse(file('war/build/tmp/warContent/launch.jnlp'))
+
+        then:
+        jnlp.@codebase.text() == '$$codebase'
+    }
+
+    def 'codebase and href can be set to different values'() {
+        when:
+        warBuildFile << '''\
+            jnlpWar {
+                codebase = '$$context'
+                href = '$$codebase$$name'
+            }
+        '''.stripIndent()
+        runTasksSuccessfully('build')
+        def jnlp = new XmlSlurper().parse(file('war/build/tmp/warContent/launch.jnlp'))
+
+        then:
+        jnlp.@href.text() == '$$codebase$$name'
+        and:
+        jnlp.@codebase.text() == '$$context'
+    }
+
+    def 'codebase is changed to different value'() {
+        when:
+        buildFile << '''\
+            jnlp {
+                codebase 'http://example.com'
+            }
+        '''.stripIndent()
+        warBuildFile << '''\
+            jnlpWar {
+                codebase = '$$context'
+                href = '$$codebase$$name'
+            }
+        '''.stripIndent()
+        runTasksSuccessfully('build')
+        def jnlp = new XmlSlurper().parse(file('war/build/tmp/warContent/launch.jnlp'))
+
+        then:
+        jnlp.@codebase.text() == '$$context'
+    }
+
     def "war contains webstart files from project"() {
         expect:
         runTasksSuccessfully("build")

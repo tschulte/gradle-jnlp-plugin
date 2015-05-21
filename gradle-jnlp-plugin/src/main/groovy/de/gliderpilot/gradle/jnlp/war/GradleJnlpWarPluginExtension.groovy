@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.archive.ZipFileTree
 
 import javax.inject.Inject
+import java.util.regex.Matcher
 
 class GradleJnlpWarPluginExtension {
 
@@ -57,6 +58,9 @@ class GradleJnlpWarPluginExtension {
     Project project
 
     CopySpec launchersSpec
+
+    String href = '$$name'
+    String codebase = '$$codebase'
 
     Map<Configuration, Launcher> launchers = [:].withDefault {
         new Launcher(it)
@@ -147,8 +151,14 @@ class GradleJnlpWarPluginExtension {
         String newJnlpFileName
 
         def filterJnlpFiles = { line ->
-            if (oldJnlpFileName && newJnlpFileName)
-                line = line.replace(oldJnlpFileName, newJnlpFileName)
+            if (line.startsWith('<jnlp')) {
+                line = line.replaceAll(/href=["'].*?["']/, Matcher.quoteReplacement("href='${href ?: newJnlpFileName}'"))
+                if (codebase) {
+                    line = line.replaceAll(/codebase=["'].*?["']/, Matcher.quoteReplacement("codebase='${codebase}'"))
+                    if (!line.contains('codebase='))
+                        line = line.replace('<jnlp', "<jnlp codebase='${codebase}'")
+                }
+            }
             line.contains('jnlp.versionEnabled') || line.contains('jnlp.packEnabled') ? '' : line
         }
 
