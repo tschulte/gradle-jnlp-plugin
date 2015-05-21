@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -28,5 +30,15 @@ dependencies {
 	compile 'org.codehaus.mojo.webstart:webstart-jnlp-servlet:1.0-6.0.02_ea_b02.2'
 	testCompile 'com.netflix.nebula:nebula-test:2.2.1', {
 		exclude module: 'groovy-all'
+	}
+}
+
+// we need the servlet published for the tests
+test.dependsOn ':jnlp-servlet:publishToMavenLocal'
+
+processResources {
+	inputs.property 'version', project.version
+	filesMatching('META-INF/gradle-plugins/*.properties') {
+		filter ReplaceTokens, tokens: [version: version]
 	}
 }

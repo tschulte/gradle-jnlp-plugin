@@ -55,6 +55,8 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                     maven {
                         url "$rootDir/repo"
                     }
+                    mavenLocal()
+                    jcenter()
                 }
                 jnlpWar {
                     from rootProject
@@ -77,6 +79,14 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
         file('gradle.properties').text = """\
             version=$version
         """.stripIndent()
+    }
+
+    def "war contains jnlp-servlet"() {
+        when:
+        runTasksSuccessfully('build')
+
+        then:
+        file("war/build/tmp/warContent/WEB-INF/lib/").listFiles({ it.name.startsWith('jnlp-servlet-') } as FileFilter)
     }
 
     def "war contains webstart files from project"() {

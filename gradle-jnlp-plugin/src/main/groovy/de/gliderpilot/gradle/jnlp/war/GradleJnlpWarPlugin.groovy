@@ -27,5 +27,13 @@ class GradleJnlpWarPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.apply plugin: 'war'
         project.extensions.create('jnlpWar', GradleJnlpWarPluginExtension, project)
+        project.dependencies {
+            getClass().getResourceAsStream("/META-INF/gradle-plugins/de.gliderpilot.jnlp-war.properties")?.withStream { is ->
+                Properties properties = new Properties()
+                properties.load(is)
+                String servletVersion = properties."implementation-version"
+                runtime "de.gliderpilot.gradle.jnlp:jnlp-servlet:${servletVersion}"
+            }
+        }
     }
 }
