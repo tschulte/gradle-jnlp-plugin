@@ -25,5 +25,5 @@ allprojects {
 
 tasks.release {
     dependsOn build
-    finalizedBy publishPlugins, bintrayUpload, artifactoryPublish
+    finalizedBy 'publishPlugins', 'bintrayUpload', 'artifactoryPublish'
 }
