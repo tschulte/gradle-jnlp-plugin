@@ -28,7 +28,7 @@ dependencies {
 	compile files(gradleApi().resolve().findAll { !it.name.startsWith('xerces') && !it.name.startsWith('xml-apis') })
 	compile 'org.codehaus.gpars:gpars:1.2.1'
 	compile 'org.codehaus.mojo.webstart:webstart-jnlp-servlet:1.0-6.0.02_ea_b02.2'
-	testCompile 'com.netflix.nebula:nebula-test:2.2.1', {
+	testCompile 'com.netflix.nebula:nebula-test:4.0.0', {
 		exclude module: 'groovy-all'
 	}
 }
