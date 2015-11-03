@@ -1,8 +1,30 @@
-language: java
-script: ./gradlew clean build
+sudo: false
+addons:
+  apt:
+    packages:
+    - git
+language: groovy
 jdk: oraclejdk7
 env: TERM=dumb
-# after_success: ./gradlew jacocoRootReport coveralls
+cache:
+  directories:
+  - $HOME/.gradle
+# don't build tags -- they would fail due to gradle-git anyway
+branches:
+  except:
+    - /^v\d+\.\d+\.\d+$/
 before_install:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
+  - git fetch --unshallow
+  - git config user.email "tobias.schulte@gliderpilot.de"
+  - git config user.name "Travis-CI"
+  - git config url.https://.insteadOf git://
+  - git checkout -qf $TRAVIS_BRANCH
+# skip default gradlew assemble
+install:
+  - echo "skip default gradlew assemble"
+script:
+- '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && ./gradlew release -Dorg.ajoberstar.grgit.auth.username=${GH_TOKEN} -Dorg.ajoberstar.grgit.auth.password -Dgradle.publish.key=${GRADLE_KEY} -Dgradle.publish.secret=${GRADLE_SECRET} --info --stacktrace || ./gradlew build --info --stacktrace'
+
+
+after_success:
+  - ./gradlew jacocoTestReport coveralls

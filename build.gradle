@@ -9,28 +9,21 @@ buildscript {
         classpath 'net.saliman:gradle-cobertura-plugin:2.2.4'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:0.6.1'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.11.3'
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.1"
     }
 }
 
 plugins {
-    id 'pl.allegro.tech.build.axion-release' version '1.1.0'
+    id 'de.gliderpilot.semantic-release' version '1.0.0'
 }
 
 apply plugin: 'base'
 
-scmVersion {
-    tag {
-        prefix = ''
-    }
-}
-
 allprojects {
     apply plugin: 'com.github.ben-manes.versions'
-    project.version = scmVersion.version
 }
 
-task publishToBintrayInSeparateBuild(type: GradleBuild, group: 'release') {
-    startParameter = project.gradle.startParameter.newBuild()
-    tasks = ['bintrayUpload']
+tasks.release {
+    dependsOn build
+    finalizedBy publishPlugins, bintrayUpload, artifactoryPublish
 }
-release.finalizedBy publishToBintrayInSeparateBuild

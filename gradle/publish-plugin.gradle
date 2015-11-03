@@ -1,0 +1,25 @@
+apply plugin: 'com.gradle.plugin-publish'
+
+pluginBundle {
+    website = 'https://github.com/tschulte/gradle-jnlp-plugin'
+    vcsUrl = 'https://github.com/tschulte/gradle-jnlp-plugin'
+    description = 'Gradle plugin to generate webstart and applet jnlp files'
+    tags = ['jnlp', 'webstart']
+
+    plugins {
+        jnlpPlugin {
+            id = 'de.gliderpilot.jnlp'
+            displayName = 'jnlp-plugin'
+        }
+        jnlpWarPlugin {
+            id = 'de.gliderpilot.jnlp-war'
+            displayName = 'jnlp-war-plugin'
+        }
+    }
+}
+
+tasks.publishPlugins {
+    onlyIf {
+        !project.version.toString().endsWith('-SNAPSHOT')
+    }
+}
