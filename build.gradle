@@ -38,5 +38,5 @@ semanticRelease {
 
 tasks.release {
     dependsOn 'build'
-    finalizedBy 'publishPlugins', 'bintrayUpload' //, 'artifactoryPublish'
+    finalizedBy ':gradle-jnlp-plugin:publishPlugins', ':gradle-jnlp-plugin:bintrayUpload', ':jnlp-servlet:bintrayUpload' //, 'artifactoryPublish'
 }
