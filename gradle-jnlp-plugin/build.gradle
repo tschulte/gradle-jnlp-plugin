@@ -21,15 +21,19 @@ apply from: "$rootDir/gradle/compile.gradle"
 apply from: "$rootDir/gradle/publishing.gradle"
 apply from: "$rootDir/gradle/publish-plugin.gradle"
 apply from: "$rootDir/gradle/bintray.gradle"
-apply from: "$rootDir/gradle/artifactory.gradle"
+//apply from: "$rootDir/gradle/artifactory.gradle"
 apply from: "$rootDir/gradle/code-quality.gradle"
 apply from: "$rootDir/gradle/code-coverage.gradle"
+
+repositories {
+    jcenter()
+}
 
 dependencies {
 	compile files(gradleApi().resolve().findAll { !it.name.startsWith('xerces') && !it.name.startsWith('xml-apis') })
 	compile 'org.codehaus.gpars:gpars:1.2.1'
 	compile 'org.codehaus.mojo.webstart:webstart-jnlp-servlet:1.0-6.0.02_ea_b02.2'
-	testCompile 'com.netflix.nebula:nebula-test:4.0.0', {
+	testCompile 'com.netflix.nebula:nebula-test:2.2.2', {
 		exclude module: 'groovy-all'
 	}
 }
@@ -38,8 +42,8 @@ dependencies {
 test.dependsOn ':jnlp-servlet:publishToMavenLocal'
 
 processResources {
-	inputs.property 'version', project.version
+	inputs.property 'version', project.version.toString()
 	filesMatching('META-INF/gradle-plugins/*.properties') {
-		filter ReplaceTokens, tokens: [version: version]
+		filter ReplaceTokens, tokens: [version: project.version.toString()]
 	}
 }

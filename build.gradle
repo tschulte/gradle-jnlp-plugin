@@ -20,13 +20,19 @@ plugins {
     id 'de.gliderpilot.semantic-release' version '1.1.2'
 }
 
+apply from: "$rootDir/gradle/credentials.gradle"
+
 apply plugin: 'base'
 
 allprojects {
     apply plugin: 'com.github.ben-manes.versions'
 }
 
+semanticRelease {
+    changeLog.ghToken = project.ext.ghToken
+}
+
 tasks.release {
-    dependsOn build
-    finalizedBy 'publishPlugins', 'bintrayUpload', 'artifactoryPublish'
+    dependsOn 'build'
+    finalizedBy 'publishPlugins', 'bintrayUpload' //, 'artifactoryPublish'
 }
