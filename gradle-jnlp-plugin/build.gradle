@@ -25,10 +25,6 @@ apply from: "$rootDir/gradle/bintray.gradle"
 apply from: "$rootDir/gradle/code-quality.gradle"
 apply from: "$rootDir/gradle/code-coverage.gradle"
 
-repositories {
-    jcenter()
-}
-
 dependencies {
 	compile files(gradleApi().resolve().findAll { !it.name.startsWith('xerces') && !it.name.startsWith('xml-apis') })
 	compile 'org.codehaus.gpars:gpars:1.2.1'
