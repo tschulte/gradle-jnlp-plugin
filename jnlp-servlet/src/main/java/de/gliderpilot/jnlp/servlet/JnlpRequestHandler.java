@@ -25,6 +25,9 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by tobias on 3/29/15.
@@ -34,7 +37,9 @@ public class JnlpRequestHandler {
     protected final ServletContext context;
     protected final String filePath;
     protected final String requestedVersion;
+    protected final String requestedEtag;
 
+    protected String etag;
     protected String contentType;
     protected String contentEncoding;
     protected URL file;
@@ -43,6 +48,7 @@ public class JnlpRequestHandler {
         context = req.getServletContext();
         filePath = req.getServletPath();
         requestedVersion = req.getParameter("version-id");
+        requestedEtag = req.getHeader("If-None-Match");
     }
 
     public long getLastModified() {
@@ -63,6 +69,15 @@ public class JnlpRequestHandler {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
+        if (etag == null) {
+            etag = generateEtag();
+        }
+        if (etag.equals(requestedEtag)) {
+            resp.setStatus(304);
+            return;
+        }
+        if (!"".equals(etag))
+            resp.setHeader("ETag", etag);
 
         if (contentType != null) {
             resp.setContentType(contentType);
@@ -83,7 +98,6 @@ public class JnlpRequestHandler {
         }
     }
 
-
     protected void findResource() {
         if (file != null)
             return;
@@ -103,6 +117,32 @@ public class JnlpRequestHandler {
         int n;
         while ((n = source.read(buf)) > 0) {
             target.write(buf, 0, n);
+        }
+    }
+
+    private String generateEtag() {
+        byte[] md5 = createMd5sum();
+        StringBuilder sb = new StringBuilder(md5.length * 2);
+        for (byte b : md5) {
+            sb.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
+        }
+        return sb.toString();
+    }
+
+    private byte[] createMd5sum() {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            try (DigestInputStream is = new DigestInputStream(file.openConnection().getInputStream(), md)) {
+                copy(is, new OutputStream() {
+                    @Override
+                    public void write(int b) throws IOException {
+                        // do nothing
+                    }
+                });
+            }
+            return md.digest();
+        } catch (Exception e) {
+            return new byte[0];
         }
     }
 

@@ -65,4 +65,35 @@ class NonVersionBasedDownloadSpec extends AbstractJnlpServletSpec {
         then:
         connection.responseCode == HttpURLConnection.HTTP_OK
     }
+
+    def "download supports If-None-Match Header"() {
+        setup:
+        def connection = download("application__V0.1.1.jar")
+        def lastModified = connection.lastModified
+        def etag = connection.getHeaderField("ETag")
+
+        when:
+        connection = download("application__V0.1.1.jar")
+        connection.setIfModifiedSince(lastModified)
+        connection.setRequestProperty("If-None-Match", etag)
+
+        then:
+        connection.responseCode == HttpURLConnection.HTTP_NOT_MODIFIED
+
+        when:
+        connection = download("application__V0.1.1.jar")
+        connection.setIfModifiedSince(lastModified + 1000)
+        connection.setRequestProperty("If-None-Match", etag)
+
+        then:
+        connection.responseCode == HttpURLConnection.HTTP_NOT_MODIFIED
+
+        when:
+        connection = download("application__V0.1.1.jar")
+        connection.setIfModifiedSince(lastModified - 1000)
+        connection.setRequestProperty("If-None-Match", etag)
+
+        then:
+        connection.responseCode == HttpURLConnection.HTTP_NOT_MODIFIED
+    }
 }
