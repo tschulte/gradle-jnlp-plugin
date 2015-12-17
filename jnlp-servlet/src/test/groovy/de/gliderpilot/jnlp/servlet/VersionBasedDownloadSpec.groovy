@@ -35,6 +35,7 @@ class VersionBasedDownloadSpec extends AbstractJnlpServletSpec {
         where:
         file               | version | contentType                    | contentEncoding
         "application.jar"  | "0.1.1" | "application/x-java-archive"   | "pack200-gzip"
+        "jnlp/launch.jnlp" | "0.1.1" | "application/x-java-jnlp-file" | null
         "griffon.png"      | "1.0.0" | "image/png"                    | null
     }
 

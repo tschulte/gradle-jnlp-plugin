@@ -37,6 +37,7 @@ public class JnlpJarRequestHandler extends JnlpRequestHandler {
         currentVersion = req.getParameter("current-version-id");
     }
 
+    @Override
     protected void findResource() {
         if (file != null)
             return;
