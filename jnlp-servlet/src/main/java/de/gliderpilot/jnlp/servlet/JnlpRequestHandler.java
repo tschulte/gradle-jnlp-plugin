@@ -18,11 +18,13 @@ package de.gliderpilot.jnlp.servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * Created by tobias on 3/29/15.
@@ -64,6 +66,8 @@ public class JnlpRequestHandler {
 
         if (contentType != null) {
             resp.setContentType(contentType);
+        } else {
+            resp.setContentType(URLConnection.guessContentTypeFromName(new File(file.getPath()).getName()));
         }
 
         if (contentEncoding != null) {

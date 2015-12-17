@@ -22,21 +22,27 @@ import spock.lang.Specification
  */
 class JnlpServletSpec extends Specification {
 
-    def "non version based download does work"() {
+    def "non version based download does work for #file"() {
         when:
-        def connection = download("application__V0.1.1.jar")
+        def connection = download(file)
 
         then:
         connection.responseCode == HttpURLConnection.HTTP_OK
 
         and:
-        connection.contentType == "application/x-java-archive"
+        connection.contentType == contentType
 
         and:
-        connection.contentEncoding == 'pack200-gzip'
+        connection.contentEncoding == contentEncoding
+
+        where:
+        file                       | contentType                    | contentEncoding
+        "application__V0.1.1.jar"  | "application/x-java-archive"   | 'pack200-gzip'
+        "jnlp/launch__V0.1.1.jnlp" | "application/x-java-jnlp-file" | null
+        "griffon__V1.0.0.png"      | "image/png"                    | null
     }
 
-    def "non version based download returns 'NOT-CHANGED'"() {
+    def "non version based download supports If-Modified-Since Header"() {
         setup:
         def lastModified = download("application__V0.1.1.jar").lastModified
 
@@ -102,7 +108,7 @@ class JnlpServletSpec extends Specification {
 
     def "special values are substituted in jnlp files"() {
         when:
-        def connection = download("jnlp/launch.jnlp")
+        def connection = download("jnlp/launch__V0.1.1.jnlp")
 
         then:
         connection.responseCode == HttpURLConnection.HTTP_OK
@@ -111,7 +117,7 @@ class JnlpServletSpec extends Specification {
         def jnlp = new XmlSlurper().parse(connection.inputStream)
 
         then:
-        jnlp.@href == 'launch.jnlp'
+        jnlp.@href == 'launch__V0.1.1.jnlp'
         jnlp.@codebase == 'http://localhost:8080/jnlp-servlet/jnlp/'
         jnlp.resources.property.find { it.@name == 'jnlp.context' }.@value == 'http://localhost:8080/jnlp-servlet'
         jnlp.resources.property.find { it.@name == 'jnlp.site' }.@value == 'http://localhost:8080'
