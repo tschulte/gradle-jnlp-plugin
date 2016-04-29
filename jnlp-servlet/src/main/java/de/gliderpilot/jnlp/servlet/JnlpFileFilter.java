@@ -99,12 +99,12 @@ public class JnlpFileFilter implements Filter {
 
         @Override
         public void flush() throws IOException {
+            writeLine();
             delegate.flush();
         }
 
         @Override
         public void close() throws IOException {
-            writeLine();
             flush();
             delegate.close();
         }
