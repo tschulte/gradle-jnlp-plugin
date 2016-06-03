@@ -46,11 +46,6 @@ class JnlpWithoutJavaPluginIntegrationSpecification extends IntegrationSpec {
         runTasksSuccessfully(':generateJnlp').standardOutput.contains(':generateJnlp')
     }
 
-    def 'copyJars task is executed'() {
-        expect:
-        runTasksSuccessfully(':copyJars').standardOutput.contains(':copyJars')
-    }
-
     def 'jars entry is not empty'() {
         expect:
         !createJnlp().resources.jar.isEmpty()

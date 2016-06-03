@@ -48,7 +48,7 @@ class JnlpWithVersionsIntegrationSpecification extends IntegrationSpec {
         """.stripIndent()
 
         writeHelloWorld('de.gliderpilot.jnlp.test')
-        executionResult = runTasksSuccessfully(':generateJnlp', ':copyJars')
+        executionResult = runTasksSuccessfully(':generateJnlp')
         def jnlpFile = file('build/jnlp/launch.jnlp')
         jnlp = new XmlSlurper().parse(jnlpFile)
     }
@@ -56,11 +56,6 @@ class JnlpWithVersionsIntegrationSpecification extends IntegrationSpec {
     def 'generateJnlp task is executed'() {
         expect:
         executionResult.wasExecuted(':generateJnlp')
-    }
-
-    def 'copyJars task is executed'() {
-        expect:
-        executionResult.wasExecuted(':copyJars')
     }
 
     def 'jars entry is not empty'() {

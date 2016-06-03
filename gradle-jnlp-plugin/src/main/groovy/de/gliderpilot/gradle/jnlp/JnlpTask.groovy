@@ -15,6 +15,8 @@
  */
 package de.gliderpilot.gradle.jnlp
 
+import org.gradle.api.tasks.ParallelizableTask
+
 import java.util.jar.JarFile
 
 import groovy.xml.MarkupBuilder
@@ -26,6 +28,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
+@ParallelizableTask
 class JnlpTask extends DefaultTask {
 
     @InputFiles

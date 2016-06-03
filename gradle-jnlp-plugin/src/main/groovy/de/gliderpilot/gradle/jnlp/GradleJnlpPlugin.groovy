@@ -17,6 +17,14 @@ package de.gliderpilot.gradle.jnlp
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.component.Artifact
+import org.gradle.api.distribution.Distribution
+import org.gradle.model.ModelMap
+import org.gradle.model.Mutate
+import org.gradle.model.Path
+import org.gradle.model.RuleSource
 
 /**
  * This is the main plugin file. Put a description of your plugin here.
@@ -31,20 +39,27 @@ class GradleJnlpPlugin implements Plugin<Project> {
         project.tasks.create('generateJnlp', JnlpTask) {
             from = project.configurations.jnlp
         }
-        project.tasks.create('copyJars', CopyJarsTask) {
-            onlyIf { !project.jnlp.signJarParams }
+        project.tasks.create("incrementalCleanupSignedJars", IncrementalCleanupSignedJarsTask) {
             from = project.configurations.jnlp
-            into new File(project.buildDir, jnlp.destinationPath + '/lib')
         }
-        project.tasks.create('signJars', SignJarsTask) {
-            onlyIf { project.jnlp.signJarParams }
-            from = project.configurations.jnlp
-            into new File(project.buildDir, jnlp.destinationPath + '/lib')
+        project.tasks.create('signJars') {
+            dependsOn 'incrementalCleanupSignedJars'
         }
         project.tasks.create('createWebstartDir') {
-            dependsOn 'generateJnlp', 'copyJars', 'signJars'
+            dependsOn 'generateJnlp', 'signJars'
             outputs.dir new File(project.buildDir, jnlp.destinationPath)
         }
+
+        project.afterEvaluate {
+            project.configurations.jnlp.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+                Task signTask = project.tasks.create("sign${artifact.file.name}", SignJarTask) {
+                    from artifact
+                }
+                project.tasks.signJars.dependsOn signTask
+                signTask.mustRunAfter 'incrementalCleanupSignedJars'
+            }
+        }
+
         project.plugins.withId('java') {
             // if plugin java is applied use the runtime configuration
             project.configurations.jnlp.extendsFrom project.configurations.runtime
@@ -63,4 +78,5 @@ class GradleJnlpPlugin implements Plugin<Project> {
             }
         }
     }
+
 }

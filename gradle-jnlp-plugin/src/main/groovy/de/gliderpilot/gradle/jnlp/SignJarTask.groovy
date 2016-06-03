@@ -15,57 +15,68 @@
  */
 package de.gliderpilot.gradle.jnlp
 
-import groovyx.gpars.GParsPool
-
-import java.util.jar.*
-
+import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
 
-class SignJarsTask extends AbstractCopyJarsTask {
+@ParallelizableTask
+class SignJarTask extends DefaultTask {
 
+    private ResolvedArtifact from
+
+    void from(ResolvedArtifact from) {
+        this.from = from
+    }
+
+    @InputFile
+    File getInputFile() {
+        from.file
+    }
+
+    @Input
+    boolean isUsePack200() {
+        project.jnlp.usePack200
+    }
+
+    @OutputFile
+    File getOutputFile() {
+        new File(project.buildDir, project.jnlp.destinationPath + '/lib' + newName(usePack200 ? '.jar.pack.gz' : '.jar'))
+    }
 
     @TaskAction
-    void signJars(IncrementalTaskInputs inputs) {
-        if (!inputs.incremental)
-            project.delete(into.listFiles())
-
-        def jarsToSign = []
-        inputs.outOfDate {
-            jarsToSign << it.file
-        }
-        inputs.removed {
-            deleteOutputFile(it.file.name)
-        }
-        GParsPool.withPool(threadCount()) {
-            jarsToSign.eachParallel { jarToSign ->
-                jarToSign = copyUnsignAndAlterManifest(jarToSign)
-                if (project.jnlp.usePack200) {
-                    project.exec {
-                        commandLine "pack200", "--repack", jarToSign
-                    }
-                }
-
-                // AntBuilder is not thread-safe, therefore we need to create
-                // a new one for each file
-                AntBuilder ant = project.createAntBuilder()
-                def signJarParams = new HashMap(project.jnlp.signJarParams)
-                signJarParams.jar = jarToSign
-                ant.signjar(signJarParams)
-
-                if (project.jnlp.usePack200) {
-                    project.exec {
-                        commandLine "pack200", "${jarToSign}.pack.gz", jarToSign
-                    }
-                    project.delete(jarToSign)
-                }
+    void signJar() {
+        File jarToSign = copyUnsignAndAlterManifest(inputFile)
+        if (usePack200) {
+            project.exec {
+                commandLine "pack200", "--repack", jarToSign
             }
+        }
+
+        def signJarParams = new HashMap(project.jnlp.signJarParams)
+        if (signJarParams) {
+            signJarParams.jar = jarToSign
+            ant.signjar(signJarParams)
+        }
+
+        if (usePack200) {
+            project.exec {
+                commandLine "pack200", "${jarToSign}.pack.gz", jarToSign
+            }
+            project.delete(jarToSign)
         }
     }
 
     File copyUnsignAndAlterManifest(File input) {
-        File output = new File(into, newName(input.name))
+        File output = new File(outputFile.parentFile, newName(".jar"))
         JarFile jarFile = new JarFile(input)
         Manifest manifest = jarFile.manifest ?: new Manifest()
         // ensure either Manifest-Version or Signature-Version is set, otherwise the manifest will not be written
@@ -93,21 +104,11 @@ class SignJarsTask extends AbstractCopyJarsTask {
         return output
     }
 
-    void deleteOutputFile(String fileName) {
-        into.listFiles().find {
-            def fileParts = (it.name - '.pack.gz').split('__V')
-            fileParts.size() == 2 ? fileName - fileParts[0] - fileParts[1] == '-' : false
-        }?.delete()
-    }
-
-
-    int threadCount() {
-        int threadCount = project.gradle.startParameter.parallelThreadCount
-        if (threadCount == -1)
-            return Runtime.runtime.availableProcessors()
-        if (threadCount == 0)
-            return 1
-        return threadCount
+    String newName(String extension) {
+        if (from.classifier == null)
+            "${from.name}__V${from.moduleVersion.id.version}${extension}"
+        else
+            "${from.name}-${from.classifier}__V${from.moduleVersion.id.version}${extension}"
     }
 
 }
