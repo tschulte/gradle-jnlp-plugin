@@ -16,12 +16,12 @@
 package de.gliderpilot.gradle.jnlp
 
 import groovyx.gpars.GParsPool
-import org.gradle.api.file.DuplicateFileCopyingException
-import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.tasks.Input
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.file.DuplicateFileCopyingException
+import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -45,6 +45,36 @@ class SignJarsTask extends DefaultTask {
         return project.jnlp.versionAppendix.call()
     }
 
+    @Input
+    boolean isUsePack200() {
+        project.jnlp.usePack200
+    }
+
+    @Input
+    def getSignJarParams() {
+        project.jnlp.signJarParams
+    }
+
+    @Input
+    def getSignJarRemovedManifestEntries() {
+        project.jnlp.signJarRemovedManifestEntries
+    }
+
+    @Input
+    def getSignJarRemovedNamedManifestEntries() {
+        project.jnlp.signJarRemovedNamedManifestEntries
+    }
+
+    @Input
+    def getSignJarAddedManifestEntries() {
+        project.jnlp.signJarAddedManifestEntries
+    }
+
+    @Input
+    def getSignJarFilteredMetaInfFiles() {
+        project.jnlp.signJarFilteredMetaInfFiles
+    }
+
     @OutputDirectory
     File getInto() {
         return new File(project.buildDir, "${project.jnlp.destinationPath}/lib")
@@ -65,20 +95,20 @@ class SignJarsTask extends DefaultTask {
         GParsPool.withPool(threadCount()) {
             jarsToSign.eachParallel { jarToSign ->
                 jarToSign = copyUnsignAndAlterManifest(jarToSign)
-                if (project.jnlp.usePack200) {
+                if (usePack200) {
                     JavaHomeAware.exec(project, "pack200", "--repack", jarToSign)
                 }
 
-                if (project.jnlp.signJarParams) {
+                if (signJarParams) {
                     // AntBuilder is not thread-safe, therefore we need to create
                     // a new one for each file
                     AntBuilder ant = project.createAntBuilder()
-                    def signJarParams = new HashMap(project.jnlp.signJarParams)
+                    def signJarParams = new HashMap(signJarParams)
                     signJarParams.jar = jarToSign
                     ant.signjar(signJarParams)
                 }
 
-                if (project.jnlp.usePack200) {
+                if (usePack200) {
                     JavaHomeAware.exec(project, "pack200", "${jarToSign}.pack.gz", jarToSign)
                     project.delete(jarToSign)
                 }
@@ -95,15 +125,15 @@ class SignJarsTask extends DefaultTask {
             def keysToRemove = attributes.keySet().findAll { key -> key.toString() ==~ "(?i)${pattern}" }
             attributes.keySet().removeAll(keysToRemove)
         }
-        def removeMainEntries = removeManifestEntries.curry(project.jnlp.signJarRemovedManifestEntries)
-        def removeNamedEntries = removeManifestEntries.curry(project.jnlp.signJarRemovedNamedManifestEntries)
+        def removeMainEntries = removeManifestEntries.curry(signJarRemovedManifestEntries)
+        def removeNamedEntries = removeManifestEntries.curry(signJarRemovedNamedManifestEntries)
         removeMainEntries(manifest.mainAttributes)
         manifest.entries.with {
             values().each { removeNamedEntries(it) }
             // remove all entries without attributes
             keySet().removeAll(entrySet().findAll { it.value.isEmpty() }*.key)
         }
-        project.jnlp.signJarAddedManifestEntries.each { key, value ->
+        signJarAddedManifestEntries.each { key, value ->
             manifest.mainAttributes.putValue(key, value)
         }
         // ensure either Manifest-Version or Signature-Version is set, otherwise the manifest will not be written
@@ -122,7 +152,7 @@ class SignJarsTask extends DefaultTask {
                 }
                 if (duplicate && duplicatesStrategy == DuplicatesStrategy.EXCLUDE) {
                     logger.debug("Ignoring duplicate entry in jar: " + output + " entry: " + entry.name)
-                } else if (entry.name == JarFile.MANIFEST_NAME || entry.name ==~ "(?i)META-INF/${project.jnlp.signJarFilteredMetaInfFiles}") {
+                } else if (entry.name == JarFile.MANIFEST_NAME || entry.name ==~ "(?i)META-INF/${signJarFilteredMetaInfFiles}") {
                     logger.debug("Ignoring entry jar: " + output + " entry: " + entry.name)
                 } else {
                     logger.debug("copying jar: " + input.name + " entry: " + entry.name)

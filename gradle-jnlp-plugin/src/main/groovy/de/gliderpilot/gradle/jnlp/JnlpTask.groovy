@@ -19,6 +19,7 @@ import groovy.xml.MarkupBuilder
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -29,6 +30,31 @@ class JnlpTask extends DefaultTask {
 
     @InputFiles
     Configuration from
+
+    @Input
+    boolean isUseVersions() {
+        project.jnlp.useVersions
+    }
+
+    @Input
+    boolean isUsePack200() {
+        project.jnlp.usePack200
+    }
+
+    @Input
+    def getJnlpParams() {
+        project.jnlp.jnlpParams
+    }
+
+    @Input
+    def getJ2seParams() {
+        project.jnlp.j2seParams
+    }
+
+    @Input
+    def getMainClassName() {
+        project.jnlp.mainClassName
+    }
 
     @OutputFile
     File getJnlpFile() {
@@ -41,19 +67,19 @@ class JnlpTask extends DefaultTask {
         outputFile.parentFile.eachFileMatch(~/.*\.jnlp/) { it.delete() }
         MarkupBuilder xml = new MarkupBuilder(outputFile.newPrintWriter('UTF-8'))
         xml.mkp.xmlDeclaration(version: '1.0', encoding: 'UTF-8')
-        xml.jnlp(project.jnlp.jnlpParams) {
+        xml.jnlp(jnlpParams) {
             delegate.with project.jnlp.withXmlClosure
             resources {
-                j2se(project.jnlp.j2seParams)
+                j2se(j2seParams)
                 from.resolve().findAll { it.name.endsWith('.jar') }.each { File jarFile ->
                     jar(jarParams(jarFile))
                 }
 
                 // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/avoidingUnnecessaryUpdateChecks.html
-                if (project.jnlp.useVersions)
+                if (useVersions)
                     property name: 'jnlp.versionEnabled', value: 'true'
                 // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/reducingDownloadTime.html
-                if (project.jnlp.usePack200)
+                if (usePack200)
                     property name: 'jnlp.packEnabled', value: 'true'
             }
             delegate.with project.jnlp.desc
@@ -72,7 +98,7 @@ class JnlpTask extends DefaultTask {
 
     Map<String, String> jarParams(ResolvedArtifact artifact) {
         String version = artifact.moduleVersion.id.version
-        if (project.jnlp.useVersions && !version.endsWith("-SNAPSHOT"))
+        if (useVersions && !version.endsWith("-SNAPSHOT"))
             if (artifact.classifier == null)
                 [href: "lib/${artifact.name}.jar", version: "${version}${project.jnlp.versionAppendix.call()}"]
             else
@@ -84,7 +110,7 @@ class JnlpTask extends DefaultTask {
     }
 
     boolean containsMainClass(File file) {
-        if (project.jnlp.mainClassName)
-            new JarFile(file).getEntry(project.jnlp.mainClassName.replace('.', '/') + '.class')
+        if (mainClassName)
+            new JarFile(file).getEntry(mainClassName.replace('.', '/') + '.class')
     }
 }

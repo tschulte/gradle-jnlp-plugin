@@ -15,6 +15,7 @@
  */
 package de.gliderpilot.gradle.jnlp
 
+import nebula.test.functional.ExecutionResult
 import spock.lang.Unroll
 
 class SignJarsSpec extends AbstractJnlpIntegrationSpec {
@@ -68,6 +69,28 @@ class SignJarsSpec extends AbstractJnlpIntegrationSpec {
     }
 
     @Unroll
+    def '[gradle #gv] when nothing changes, signJars is UP-TO-DATE'() {
+        given:
+        gradleVersion = gv
+
+        when:
+        ExecutionResult result = buildWithDependency null
+
+        then:
+        !result.wasUpToDate(':signJars')
+
+        when:
+        result = buildWithDependency null
+
+        then:
+        result.wasUpToDate(':signJars')
+
+        where:
+        gv << gradleVersions
+    }
+
+
+    @Unroll
     def '[gradle #gv] when dependency is removed, the old version is removed from the lib directory'() {
         given:
         gradleVersion = gv
@@ -113,6 +136,28 @@ class SignJarsSpec extends AbstractJnlpIntegrationSpec {
 
         then:
         directory("build/jnlp/lib").list { file, name -> name.startsWith(moduleName) }.first() == "${moduleName}__V1.0-SNAPSHOT-myalias.jar"
+
+        where:
+        gv << gradleVersions
+    }
+
+    @Unroll
+    def '[gradle #gv] changing pack200 config results in rebuild'() {
+        given:
+        gradleVersion = gv
+
+        when:
+        buildWithDependency null
+
+        then:
+        directory('build/jnlp/lib').list().every { it.endsWith('.jar') }
+
+        when:
+        usePack200 = true
+        buildWithDependency null
+
+        then:
+        directory('build/jnlp/lib').list().every { it.endsWith('.jar.pack.gz') }
 
         where:
         gv << gradleVersions
