@@ -77,20 +77,37 @@ class JarDiffTask extends DefaultTask {
         File oldFile = getJar(oldVersion.file)
         File newFile = getJar(newVersion.file)
         File diffJar = new File(into, "${oldVersion.baseName}__V${oldVersion.version}__V${newVersion.version}.diff.jar")
+        logger.info("creating jardiff $diffJar.name")
         diffJar.withOutputStream { os ->
             JarDiff.createPatch(oldFile.canonicalPath, newFile.canonicalPath, os, true)
         }
         if (newVersion.file.name.endsWith('.pack.gz')) {
             // new file is in pack200 format, therefore do also pack the jardiff
             File diffJarPacked = new File("${diffJar}.pack.gz")
-            project.exec {
-                commandLine "pack200", diffJarPacked, diffJar
-            }
-            project.delete(diffJar)
-            if (diffJarPacked.size() >= newVersion.file.size())
+            logger.info("packing $diffJar.name with pack200")
+            try {
+                project.exec {
+                    commandLine "pack200", "--repack", diffJar
+                }
+                project.exec {
+                    commandLine "pack200", diffJarPacked, diffJar
+                }
+                project.delete(diffJar)
+                if (diffJarPacked.size() >= newVersion.file.size()) {
+                    // only keep jardiff.pack.gz if smaller than the full file
+                    logger.info("jardiff.pack.gz $diffJarPacked.name is not smaller than $newFile.name")
+                    project.delete(diffJarPacked)
+                }
+                return
+            } catch (e) {
+                // the file may be created and have size 0 -- delete
                 project.delete(diffJarPacked)
-        } else if (diffJar.size() >= newVersion.file.size()) {
-            // don't pack, but only keep if smaller than the full file
+                logger.warn("failed to pack $diffJar.name", e)
+            }
+        }
+        if (diffJar.size() >= newVersion.file.size()) {
+            // only keep jardiff if smaller than the full file
+            logger.info("jardiff $diffJar.name is not smaller than $newFile.name")
             project.delete(diffJar)
         }
     }

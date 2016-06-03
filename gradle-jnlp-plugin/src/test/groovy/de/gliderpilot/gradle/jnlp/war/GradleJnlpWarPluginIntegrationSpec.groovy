@@ -357,4 +357,68 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
         fileExists("war/build/tmp/warContent/launch.jnlp")
         fileExists("war/build/tmp/warContent/lib/sub__V1.1.jar.pack.gz")
     }
+
+    def "jardiff from xalan 2.7.1 to 2.7.2 with pack200"() {
+        when:
+        buildFile << "repositories { jcenter() }\n"
+        buildFile << "dependencies { runtime 'xalan:xalan:2.7.1' }\n"
+        runTasksSuccessfully('build', 'publish')
+        buildFile << "dependencies { runtime 'xalan:xalan:2.7.2' }\n"
+        version = '1.1'
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.0" "$rootProject.group:$rootProject.name:1.0:webstart@zip"
+                }
+                launchers {
+                    "1.1" {
+                        jardiff {
+                            from "1.0"
+                        }
+                    }
+                }
+            }
+        '''
+        runTasksSuccessfully("build")
+
+        then:
+        fileExists("war/build/libs/war-1.1.war")
+        fileExists("war/build/tmp/warContent/launch.jnlp")
+        // somehow xalan does not work, no pack.gz is created
+        !fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1__V2.7.2.diff.jar.pack.gz")
+        // but the diff.jar is bigger than the v2.7.2.jar.pack.gz, therefore no diff
+        !fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1__V2.7.2.diff.jar")
+    }
+
+    def "jardiff from xalan 2.7.1 to 2.7.2 without pack200"() {
+        when:
+        buildFile << "jnlp.usePack200 = false\n"
+        buildFile << "repositories { jcenter() }\n"
+        buildFile << "dependencies { runtime 'xalan:xalan:2.7.1' }\n"
+        runTasksSuccessfully('build', 'publish')
+        buildFile << "dependencies { runtime 'xalan:xalan:2.7.2' }\n"
+        version = '1.1'
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.0" "$rootProject.group:$rootProject.name:1.0:webstart@zip"
+                }
+                launchers {
+                    "1.1" {
+                        jardiff {
+                            from "1.0"
+                        }
+                    }
+                }
+            }
+        '''
+        runTasksSuccessfully("build")
+
+        then:
+        fileExists("war/build/libs/war-1.1.war")
+        fileExists("war/build/tmp/warContent/launch.jnlp")
+        // diff.jar is smaller than v2.7.2.jar
+        fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1__V2.7.2.diff.jar")
+    }
+
 }
