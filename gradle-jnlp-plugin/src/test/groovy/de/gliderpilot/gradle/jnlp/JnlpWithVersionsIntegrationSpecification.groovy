@@ -37,6 +37,7 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
 
             jnlp {
                 useVersions = true
+                usePack200 = false
             }
 
             dependencies {
@@ -46,7 +47,7 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
             """.stripIndent()
 
         writeHelloWorld('de.gliderpilot.jnlp.test')
-        executionResult = runTasksSuccessfully(':generateJnlp', ':copyJars')
+        executionResult = runTasksSuccessfully(':createWebstartDir')
         jnlp = jnlp()
     }
 
@@ -63,12 +64,12 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
     }
 
     @Unroll
-    def '[gradle #gv] copyJars task is executed'() {
+    def '[gradle #gv] signJars task is executed'() {
         given:
         gradleVersion = gv
 
         expect:
-        executionResult.wasExecuted(':copyJars')
+        executionResult.wasExecuted(':signJars')
 
         where:
         gv << gradleVersions
@@ -145,7 +146,7 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
 
         and:
         version = "1.0-SNAPSHOT"
-        runTasksSuccessfully(':generateJnlp', ':copyJars')
+        runTasksSuccessfully(':generateJnlp')
         jnlp = jnlp()
 
         when:
@@ -170,7 +171,7 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
         addSubproject("subproject")
         buildFile << "dependencies { compile project(':subproject') }"
         version = "1.0-SNAPSHOT"
-        runTasksSuccessfully(':generateJnlp', ':copyJars')
+        runTasksSuccessfully(':generateJnlp')
         jnlp = jnlp()
 
         when:

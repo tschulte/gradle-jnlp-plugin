@@ -106,7 +106,7 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractJnlpIntegratio
 
         and:
         version = "1.0-SNAPSHOT"
-        runTasksSuccessfully(':generateJnlp', ':copyJars')
+        runTasksSuccessfully(':generateJnlp')
         jnlp = jnlp()
 
         when:
@@ -131,7 +131,7 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractJnlpIntegratio
         addSubproject("subproject")
         buildFile << "dependencies { compile project(':subproject') }"
         version = "1.0-SNAPSHOT"
-        runTasksSuccessfully(':generateJnlp', ':copyJars')
+        runTasksSuccessfully(':generateJnlp')
         jnlp = jnlp()
 
         when:

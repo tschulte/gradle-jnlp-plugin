@@ -46,18 +46,6 @@ class JnlpWithoutJavaPluginIntegrationSpecification extends AbstractJnlpIntegrat
     }
 
     @Unroll
-    def '[gradle #gv] copyJars task is executed'() {
-        given:
-        gradleVersion = gv
-
-        expect:
-        runTasksSuccessfully(':copyJars').standardOutput.contains(':copyJars')
-
-        where:
-        gv << gradleVersions
-    }
-
-    @Unroll
     def '[gradle #gv] jars entry is not empty'() {
         given:
         gradleVersion = gv

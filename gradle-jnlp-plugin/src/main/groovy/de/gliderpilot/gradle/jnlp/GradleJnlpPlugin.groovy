@@ -31,20 +31,14 @@ class GradleJnlpPlugin implements Plugin<Project> {
         project.tasks.create('generateJnlp', JnlpTask) {
             from = project.configurations.jnlp
         }
-        project.tasks.create('copyJars', CopyJarsTask) {
-            onlyIf { !project.jnlp.signJarParams }
-            from = project.configurations.jnlp
-            into new File(project.buildDir, jnlp.destinationPath + '/lib')
-        }
         project.tasks.create('signJars', SignJarsTask) {
-            onlyIf { project.jnlp.signJarParams }
             from = project.configurations.jnlp
-            into new File(project.buildDir, jnlp.destinationPath + '/lib')
         }
         project.tasks.create('createWebstartDir') {
-            dependsOn 'generateJnlp', 'copyJars', 'signJars'
+            dependsOn 'generateJnlp', 'signJars'
             outputs.dir new File(project.buildDir, jnlp.destinationPath)
         }
+
         project.plugins.withId('java') {
             // if plugin java is applied use the runtime configuration
             project.configurations.jnlp.extendsFrom project.configurations.runtime
@@ -63,4 +57,5 @@ class GradleJnlpPlugin implements Plugin<Project> {
             }
         }
     }
+
 }

@@ -19,6 +19,11 @@ import groovyx.gpars.GParsPool
 import org.gradle.api.file.DuplicateFileCopyingException
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Input
+import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 
@@ -27,10 +32,23 @@ import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 
-class SignJarsTask extends AbstractCopyJarsTask {
+class SignJarsTask extends DefaultTask {
 
     @Input
     DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+    @InputFiles
+    Configuration from
+
+    @Input
+    String getVersionAppendix() {
+        return project.jnlp.versionAppendix.call()
+    }
+
+    @OutputDirectory
+    File getInto() {
+        return new File(project.buildDir, "${project.jnlp.destinationPath}/lib")
+    }
 
     @TaskAction
     void signJars(IncrementalTaskInputs inputs) {
@@ -51,12 +69,14 @@ class SignJarsTask extends AbstractCopyJarsTask {
                     JavaHomeAware.exec(project, "pack200", "--repack", jarToSign)
                 }
 
-                // AntBuilder is not thread-safe, therefore we need to create
-                // a new one for each file
-                AntBuilder ant = project.createAntBuilder()
-                def signJarParams = new HashMap(project.jnlp.signJarParams)
-                signJarParams.jar = jarToSign
-                ant.signjar(signJarParams)
+                if (project.jnlp.signJarParams) {
+                    // AntBuilder is not thread-safe, therefore we need to create
+                    // a new one for each file
+                    AntBuilder ant = project.createAntBuilder()
+                    def signJarParams = new HashMap(project.jnlp.signJarParams)
+                    signJarParams.jar = jarToSign
+                    ant.signjar(signJarParams)
+                }
 
                 if (project.jnlp.usePack200) {
                     JavaHomeAware.exec(project, "pack200", "${jarToSign}.pack.gz", jarToSign)
@@ -118,13 +138,27 @@ class SignJarsTask extends AbstractCopyJarsTask {
     void deleteOutputFile(String fileName) {
         into.listFiles().find {
             def fileParts = (it.name - '.pack.gz').split('__V')
-            fileParts.size() == 2 ? fileName - fileParts[0] - (fileParts[1] - project.jnlp.versionAppendix.call()) == '-' : false
+            fileParts.size() == 2 ? fileName - fileParts[0] - (fileParts[1] - versionAppendix) == '-' : false
         }?.delete()
     }
 
 
     int threadCount() {
         return project.gradle.startParameter.maxWorkerCount
+    }
+
+    String newName(String fileName) {
+        ResolvedArtifact artifact = from.resolvedConfiguration.resolvedArtifacts.find {
+            it.extension == 'jar' && it.file.name == fileName
+        }
+        if (artifact != null) {
+            if (artifact.classifier == null)
+                "${artifact.name}__V${artifact.moduleVersion.id.version}${versionAppendix}.jar"
+            else
+                "${artifact.name}-${artifact.classifier}__V${artifact.moduleVersion.id.version}${versionAppendix}.jar"
+        } else {
+            fileName
+        }
     }
 
 }
