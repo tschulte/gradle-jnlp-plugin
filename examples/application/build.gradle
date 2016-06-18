@@ -4,10 +4,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'org.codehaus.griffon:gradle-griffon-plugin:2.2.0'
-        classpath 'net.saliman:gradle-cobertura-plugin:2.2.4'
-        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:0.4.1'
-        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.9.0'
+        classpath 'org.codehaus.griffon:gradle-griffon-plugin:2.6.0'
     }
 }
 
@@ -17,13 +14,13 @@ apply plugin: 'org.codehaus.griffon.griffon'
 griffon {
     disableDependencyResolution = false
     includeGroovyDependencies = false
-    version = '2.1.0'
     toolkit = 'swing'
 }
 
-apply from: 'gradle/publishing.gradle'
-apply from: 'gradle/code-coverage.gradle'
-apply from: 'gradle/code-quality.gradle'
+apply from: "$rootDir/gradle/compile.gradle"
+apply from: "$rootDir/gradle/publishing.gradle"
+apply from: "$rootDir/gradle/code-coverage.gradle"
+apply from: "$rootDir/gradle/code-quality.gradle"
 apply from: 'gradle/integration-test.gradle'
 
 mainClassName = 'org.example.Launcher'
@@ -36,11 +33,15 @@ dependencies {
         exclude group: 'ant',         module: 'ant-junit'
         exclude group: 'ant-contrib', module: 'ant-contrib'
     }
-    runtime 'org.slf4j:slf4j-log4j12:1.7.7'
+    runtime 'org.slf4j:slf4j-log4j12:1.7.21'
 
     testCompile "org.codehaus.griffon:griffon-fest-test:${griffon.version}"
-    testCompile 'org.codehaus.groovy:groovy-all:2.3.3'
-    testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
 }
 
 compileGroovy.enabled = false
+
+afterEvaluate {
+    // prevent ClassCastException
+    project.version = project.version.toString()
+}

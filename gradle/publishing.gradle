@@ -32,10 +32,10 @@ jar {
             'Build-Date': project.buildDate,
             'Build-Time': project.buildTime,
             'Specification-Title': project.name,
-            'Specification-Version': project.version,
+            'Specification-Version': project.version.toString(),
             'Specification-Vendor': 'Tobias Schulte',
             'Implementation-Title': project.name,
-            'Implementation-Version': project.version,
+            'Implementation-Version': project.version.toString(),
             'Implementation-Vendor': 'Tobias Schulte'
         )
     }

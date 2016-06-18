@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'org.akhikhl.gretty:gretty:1.2.3'
+        classpath 'org.akhikhl.gretty:gretty:1.2.4'
     }
 }
 apply plugin: 'war'
@@ -13,7 +13,7 @@ apply from: "$rootDir/gradle/credentials.gradle"
 apply from: "$rootDir/gradle/compile.gradle"
 apply from: "$rootDir/gradle/publishing.gradle"
 apply from: "$rootDir/gradle/bintray.gradle"
-//apply from: "$rootDir/gradle/artifactory.gradle"
+apply from: "$rootDir/gradle/artifactory.gradle"
 apply from: "$rootDir/gradle/code-quality.gradle"
 apply from: "$rootDir/gradle/code-coverage.gradle"
 gretty {

@@ -16,7 +16,7 @@
 
 apply plugin: 'findbugs'
 apply plugin: 'jdepend'
-apply plugin: 'license'
+apply plugin: 'com.github.hierynomus.license'
 
 findbugs {
     toolVersion = '3.0.0'
@@ -57,8 +57,4 @@ license {
         groovy = 'SLASHSTAR_STYLE'
     }
     ext.year = '2015'
-}
-
-licenseTest {
-    source -= sourceSets.test.resources
 }

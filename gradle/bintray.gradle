@@ -34,7 +34,7 @@ bintray {
         vcsUrl = 'https://github.com/tschulte/gradle-jnlp-plugin'
         publicDownloadNumbers = true
         version {
-            vcsTag = project.version
+            vcsTag = project.version.toString()
             attributes = [
                 'gradle-plugin': ['de.gliderpilot.jnlp', project.group, project.name].join(':')
             ]
