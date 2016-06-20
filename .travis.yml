@@ -27,4 +27,4 @@ script:
 
 
 after_success:
-  - ./gradlew jacocoTestReport coveralls
+  - ./gradlew jacocoTestReport cobertura coveralls
