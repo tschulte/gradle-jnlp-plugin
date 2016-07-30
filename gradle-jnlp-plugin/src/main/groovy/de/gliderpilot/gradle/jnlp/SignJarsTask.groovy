@@ -68,18 +68,24 @@ class SignJarsTask extends AbstractCopyJarsTask {
         File output = new File(into, newName(input.name))
         JarFile jarFile = new JarFile(input)
         Manifest manifest = jarFile.manifest ?: new Manifest()
-        // ensure either Manifest-Version or Signature-Version is set, otherwise the manifest will not be written
-        if (!manifest.mainAttributes.getValue('Manifest-Version') && !manifest.mainAttributes.getValue('Signature-Version'))
-            manifest.mainAttributes.putValue('Manifest-Version', '1.0')
-        def removeManifestEntries = { attributes ->
-            def keysToRemove = attributes.keySet().findAll { key -> key.toString() ==~ "(?i)${project.jnlp.signJarRemovedManifestEntries}" }
+        def removeManifestEntries = { pattern, attributes ->
+            def keysToRemove = attributes.keySet().findAll { key -> key.toString() ==~ "(?i)${pattern}" }
             attributes.keySet().removeAll(keysToRemove)
         }
-        removeManifestEntries(manifest.mainAttributes)
-        manifest.entries.values().each(removeManifestEntries)
+        def removeMainEntries = removeManifestEntries.curry(project.jnlp.signJarRemovedManifestEntries)
+        def removeNamedEntries = removeManifestEntries.curry(project.jnlp.signJarRemovedNamedManifestEntries)
+        removeMainEntries(manifest.mainAttributes)
+        manifest.entries.with {
+            values().each { removeNamedEntries(it) }
+            // remove all entries without attributes
+            keySet().removeAll(entrySet().findAll { it.value.isEmpty() }*.key)
+        }
         project.jnlp.signJarAddedManifestEntries.each { key, value ->
             manifest.mainAttributes.putValue(key, value)
         }
+        // ensure either Manifest-Version or Signature-Version is set, otherwise the manifest will not be written
+        if (!manifest.mainAttributes.getValue('Manifest-Version') && !manifest.mainAttributes.getValue('Signature-Version'))
+            manifest.mainAttributes.putValue('Manifest-Version', '1.0')
 
         new JarOutputStream(output.newOutputStream(), manifest).withStream { os ->
             jarFile.entries().each { entry ->

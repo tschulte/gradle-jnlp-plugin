@@ -46,7 +46,8 @@ class GradleJnlpPluginExtension {
     Map<String, String> signJarParams = [:]
     Map<String, String> signJarAddedManifestEntries
     String signJarFilteredMetaInfFiles = '(?:SIG-.*|.*[.](?:DSA|SF|RSA)|INDEX.LIST)'
-    String signJarRemovedManifestEntries = '(?:Trusted-Only|Trusted-Library|.*-Digest)'
+    String signJarRemovedManifestEntries = '(?:Trusted-Only|Trusted-Library)'
+    String signJarRemovedNamedManifestEntries = '(?:.*-Digest)'
 
     Closure withXmlClosure
     Closure desc
