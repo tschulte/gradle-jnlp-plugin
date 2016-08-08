@@ -19,26 +19,18 @@ import nebula.test.IntegrationSpec
 import spock.lang.Shared
 import spock.lang.Unroll
 
-@Unroll
-class JnlpWithoutJavaPluginIntegrationSpecification extends IntegrationSpec {
+class JnlpWithoutJavaPluginIntegrationSpecification extends AbstractJnlpIntegrationSpec {
 
     def setup() {
         buildFile << """\
-            apply plugin: 'de.gliderpilot.jnlp'
-
             jnlp {
                 mainClassName = 'griffon.javafx.JavaFXGriffonApplication'
             }
 
-            version = '1.0'
-
-            repositories {
-                jcenter()
-            }
             dependencies {
                 jnlp 'org.codehaus.griffon:griffon-javafx:2.0.0.BETA3'
             }
-        """.stripIndent()
+            """.stripIndent()
     }
 
     def 'generateJnlp task is executed'() {
@@ -52,33 +44,37 @@ class JnlpWithoutJavaPluginIntegrationSpecification extends IntegrationSpec {
     }
 
     def 'jars entry is not empty'() {
-        expect:
-        !createJnlp().resources.jar.isEmpty()
+        when:
+        runTasksSuccessfully('generateJnlp')
+
+        then:
+        !jnlp().resources.jar.isEmpty()
     }
 
     def 'mandatory fields in information block are filled in the jnlp'() {
-        given:
-        def jnlp = createJnlp()
+        when:
+        runTasksSuccessfully('generateJnlp')
+        def jnlp = jnlp()
 
-        expect:
+        then:
         jnlp.information.title.text() == moduleName
         jnlp.information.vendor.text() == moduleName
     }
 
     def 'main-class is set'() {
-        expect:
-        createJnlp().'application-desc'.@'main-class'.text() == 'griffon.javafx.JavaFXGriffonApplication'
+        when:
+        runTasksSuccessfully('generateJnlp')
+
+        then:
+        jnlp().'application-desc'.@'main-class'.text() == 'griffon.javafx.JavaFXGriffonApplication'
     }
 
     def 'main-jar is marked'() {
-        expect:
-        createJnlp().resources.jar.find { it.@href =~ 'griffon-javafx' }.@main.text() == 'true'
-    }
+        when:
+        runTasksSuccessfully('generateJnlp')
 
-    private def createJnlp() {
-        runTasksSuccessfully(':generateJnlp')
-        def jnlpFile = file('build/jnlp/launch.jnlp')
-        new XmlSlurper().parse(jnlpFile)
+        then:
+        jnlp().resources.jar.find { it.@href =~ 'griffon-javafx' }.@main.text() == 'true'
     }
 
 }

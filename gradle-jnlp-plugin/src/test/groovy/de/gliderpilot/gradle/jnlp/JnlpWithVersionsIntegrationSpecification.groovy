@@ -15,42 +15,33 @@
  */
 package de.gliderpilot.gradle.jnlp
 
-import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
-import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-class JnlpWithVersionsIntegrationSpecification extends IntegrationSpec {
+class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSpec {
 
-    ExecutionResult executionResult
     def jnlp
+    ExecutionResult executionResult
 
     def setup() {
         buildFile << """\
             apply plugin: 'groovy'
             apply plugin: 'application'
-            apply plugin: 'de.gliderpilot.jnlp'
 
             jnlp {
                 useVersions = true
             }
 
-            version = '1.0'
-
-            repositories {
-                jcenter()
-            }
             dependencies {
                 compile 'org.codehaus.groovy:groovy-all:2.3.1'
             }
             mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
-        """.stripIndent()
+            """.stripIndent()
 
         writeHelloWorld('de.gliderpilot.jnlp.test')
         executionResult = runTasksSuccessfully(':generateJnlp', ':copyJars')
-        def jnlpFile = file('build/jnlp/launch.jnlp')
-        jnlp = new XmlSlurper().parse(jnlpFile)
+        jnlp = jnlp()
     }
 
     def 'generateJnlp task is executed'() {

@@ -15,10 +15,11 @@
  */
 package de.gliderpilot.gradle.jnlp.war
 
+import de.gliderpilot.gradle.jnlp.AbstractJnlpIntegrationSpec
 import nebula.test.IntegrationSpec
 import spock.lang.Ignore
 
-class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
+class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
 
     File warBuildFile
 
@@ -26,7 +27,6 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
         writeHelloWorld('de.gliderpilot.gradle.jnlp.test')
         buildFile << '''\
             apply plugin: 'application'
-            apply plugin: 'de.gliderpilot.jnlp'
             apply plugin: 'maven-publish'
             group = 'de.gliderpilot.gradle.jnlp.test'
             mainClassName = 'de.gliderpilot.gradle.jnlp.test.HelloWorld'
@@ -44,10 +44,6 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                         }
                     }
                 }
-            }
-            jnlp {
-                signJarParams = [alias: 'myalias', storepass: 'mystorepass',
-                    keystore: 'file:keystore.ks']
             }
             project(':war') { warProject ->
                 apply plugin: 'de.gliderpilot.jnlp-war'
@@ -67,18 +63,10 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                 }
                 war.finalizedBy unzipWar
             }
-            if (!file('keystore.ks').exists())
-                ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
-                           keystore: 'keystore.ks')
-        '''.stripIndent()
+            '''.stripIndent()
+        enableJarSigner()
         warBuildFile = new File(addSubproject('war'), 'build.gradle')
         version = "1.0"
-    }
-
-    def setVersion(String version) {
-        file('gradle.properties').text = """\
-            version=$version
-        """.stripIndent()
     }
 
     def "war contains jnlp-servlet"() {
@@ -106,7 +94,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
             jnlp {
                 codebase 'http://example.com'
             }
-        '''.stripIndent()
+            '''.stripIndent()
         runTasksSuccessfully('build')
         def jnlp = new XmlSlurper().parse(file('war/build/tmp/warContent/launch.jnlp'))
 
@@ -121,7 +109,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                 codebase = '$$context'
                 href = '$$codebase$$name'
             }
-        '''.stripIndent()
+            '''.stripIndent()
         runTasksSuccessfully('build')
         def jnlp = new XmlSlurper().parse(file('war/build/tmp/warContent/launch.jnlp'))
 
@@ -137,13 +125,13 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
             jnlp {
                 codebase 'http://example.com'
             }
-        '''.stripIndent()
+            '''.stripIndent()
         warBuildFile << '''\
             jnlpWar {
                 codebase = '$$context'
                 href = '$$codebase$$name'
             }
-        '''.stripIndent()
+            '''.stripIndent()
         runTasksSuccessfully('build')
         def jnlp = new XmlSlurper().parse(file('war/build/tmp/warContent/launch.jnlp'))
 
@@ -174,7 +162,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                     }
                 }
             }
-        '''
+            '''
         runTasksSuccessfully("build")
 
         then:
@@ -201,7 +189,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                     }
                 }
             }
-        '''
+            '''
         runTasksSuccessfully('build', 'publish')
 
         version = '1.2'
@@ -216,7 +204,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                     }
                 }
             }
-        '''
+            '''
         runTasksSuccessfully("build", 'publish')
 
         version = '1.3'
@@ -233,7 +221,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                     }
                 }
             }
-        '''
+            '''
         runTasksSuccessfully("build", 'publish')
 
         then:
@@ -267,7 +255,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                     }
                 }
             }
-        '''.stripIndent()
+            '''.stripIndent()
 
         expect:
         runTasksSuccessfully("build")
@@ -293,7 +281,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                     }
                 }
             }
-        '''
+            '''
         runTasksSuccessfully("build")
 
         then:
@@ -321,7 +309,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                     }
                 }
             }
-        '''
+            '''
         runTasksSuccessfully("build")
 
         then:
@@ -349,7 +337,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                     }
                 }
             }
-        '''
+            '''
         runTasksSuccessfully("build")
 
         then:
@@ -378,7 +366,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                     }
                 }
             }
-        '''
+            '''
         runTasksSuccessfully("build")
 
         then:
@@ -411,7 +399,7 @@ class GradleJnlpWarPluginIntegrationSpec extends IntegrationSpec {
                     }
                 }
             }
-        '''
+            '''
         runTasksSuccessfully("build")
 
         then:

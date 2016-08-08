@@ -20,7 +20,7 @@ import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-class SignJarsIncrementalBuildSpec extends IntegrationSpec {
+class SignJarsIncrementalBuildSpec extends AbstractJnlpIntegrationSpec {
 
     def setup() {
         writeHelloWorld('de.gliderpilot.jnlp.test')
@@ -32,13 +32,6 @@ class SignJarsIncrementalBuildSpec extends IntegrationSpec {
             apply plugin: 'application'
             apply plugin: 'de.gliderpilot.jnlp'
 
-            jnlp {
-                signJarParams = [alias: 'myalias', storepass: 'mystorepass',
-                    keystore: 'file:keystore.ks']
-            }
-
-            version = '1.0'
-
             repositories {
                 jcenter()
             }
@@ -46,10 +39,8 @@ class SignJarsIncrementalBuildSpec extends IntegrationSpec {
                 ${dependency ? "compile '$dependency'" : ""}
             }
             mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
-            if (!file('keystore.ks').exists())
-                ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
-                           keystore: 'keystore.ks')
-        """.stripIndent()
+            """.stripIndent()
+        enableJarSigner()
 
         runTasksSuccessfully(':createWebstartDir')
     }

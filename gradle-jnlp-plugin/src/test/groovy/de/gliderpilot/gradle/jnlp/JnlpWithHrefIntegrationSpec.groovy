@@ -20,39 +20,25 @@ import nebula.test.functional.ExecutionResult
 import spock.lang.Unroll
 
 @Unroll
-class JnlpWithHrefIntegrationSpec extends IntegrationSpec {
-
-    ExecutionResult executionResult
-    def jnlp
+class JnlpWithHrefIntegrationSpec extends AbstractJnlpIntegrationSpec {
 
     def setup() {
         buildFile << '''\
             apply plugin: 'groovy'
             apply plugin: 'application'
-            apply plugin: 'de.gliderpilot.jnlp'
 
             jnlp {
                 href "launch_v${project.version}.jnlp"
             }
 
-            repositories {
-                jcenter()
-            }
             dependencies {
                 compile 'org.codehaus.groovy:groovy-all:2.3.1'
             }
-            mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
-        '''.stripIndent()
 
-        version = '1.0'
+            mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
+            '''.stripIndent()
 
         writeHelloWorld('de.gliderpilot.jnlp.test')
-    }
-
-    def setVersion(String version) {
-        file('gradle.properties').text = """\
-            version=$version
-        """.stripIndent()
     }
 
     def 'target folder does only contain one jnlp after version change'() {

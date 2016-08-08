@@ -15,13 +15,11 @@
  */
 package de.gliderpilot.gradle.jnlp
 
-import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
-import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-class JnlpWithPack200IntegrationSpecification extends IntegrationSpec {
+class JnlpWithPack200IntegrationSpecification extends AbstractJnlpIntegrationSpec {
 
     def jnlp
     ExecutionResult executionResult
@@ -30,32 +28,21 @@ class JnlpWithPack200IntegrationSpecification extends IntegrationSpec {
         buildFile << """\
             apply plugin: 'java'
             apply plugin: 'application'
-            apply plugin: 'de.gliderpilot.jnlp'
 
             jnlp {
                 usePack200 = true
-                signJarParams = [alias: 'myalias', storepass: 'mystorepass',
-                    keystore: 'file:keystore.ks']
             }
 
-            version = '1.0'
-
-            repositories {
-                jcenter()
-            }
             dependencies {
                 // jxlayer is already signed. This caused problems with usePack200
                 compile 'org.swinglabs:jxlayer:3.0.4'
             }
             mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
-            ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
-                       keystore: 'keystore.ks')
-        """.stripIndent()
-
+            """.stripIndent()
+        enableJarSigner()
         writeHelloWorld('de.gliderpilot.jnlp.test')
         executionResult = runTasksSuccessfully(':createWebstartDir')
-        def jnlpFile = file('build/jnlp/launch.jnlp')
-        jnlp = new XmlSlurper().parse(jnlpFile)
+        jnlp = jnlp()
     }
 
     def 'generateJnlp task is executed'() {

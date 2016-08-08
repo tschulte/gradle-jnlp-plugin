@@ -20,7 +20,7 @@ import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-class JnlpWithoutVersionsIntegrationSpecification extends IntegrationSpec {
+class JnlpWithoutVersionsIntegrationSpecification extends AbstractJnlpIntegrationSpec {
 
     def jnlp
 
@@ -28,29 +28,23 @@ class JnlpWithoutVersionsIntegrationSpecification extends IntegrationSpec {
         buildFile << """\
             apply plugin: 'groovy'
             apply plugin: 'application'
-            apply plugin: 'de.gliderpilot.jnlp'
 
             jnlp {
                 useVersions = false
             }
 
-            version = '1.0'
             sourceCompatibility = '1.6'
             targetCompatibility = '1.6'
 
-            repositories {
-                jcenter()
-            }
             dependencies {
                 compile 'org.codehaus.groovy:groovy-all:2.3.1'
             }
             mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
-        """.stripIndent()
+            """.stripIndent()
 
         writeHelloWorld('de.gliderpilot.jnlp.test')
-        runTasksSuccessfully(':generateJnlp')
-        def jnlpFile = file('build/jnlp/launch.jnlp')
-        jnlp = new XmlSlurper().parse(jnlpFile)
+        runTasksSuccessfully('generateJnlp')
+        jnlp = jnlp()
     }
 
     def 'jars entry is not empty'() {

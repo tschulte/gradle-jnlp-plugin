@@ -22,36 +22,25 @@ import spock.lang.Unroll
 import java.util.jar.JarFile
 
 @Issue("https://github.com/tschulte/gradle-jnlp-plugin/issues/34")
-class SignJarsRemoveNamedEntriesSpec extends IntegrationSpec {
+class SignJarsRemoveNamedEntriesSpec extends AbstractJnlpIntegrationSpec {
 
     def setup() {
         writeHelloWorld('de.gliderpilot.jnlp.test')
-        buildFile.text = """\
+        buildFile << """\
             apply plugin: 'java'
             apply plugin: 'application'
-            apply plugin: 'de.gliderpilot.jnlp'
 
             jnlp {
                 usePack200 = false
                 signJarRemovedNamedManifestEntries = ".*"
-                signJarParams = [alias: 'myalias', storepass: 'mystorepass',
-                    keystore: 'file:keystore.ks']
             }
 
-            version = '1.0'
-
-            repositories {
-                jcenter()
-            }
             dependencies {
                 compile 'commons-httpclient:commons-httpclient:3.1'
             }
             mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
-            if (!file('keystore.ks').exists())
-                ant.genkey(alias: 'myalias', storepass: 'mystorepass', dname: 'CN=Ant Group, OU=Jakarta Division, O=Apache.org, C=US',
-                           keystore: 'keystore.ks')
-        """.stripIndent()
-
+            """.stripIndent()
+        enableJarSigner()
         runTasksSuccessfully(':createWebstartDir')
     }
 
