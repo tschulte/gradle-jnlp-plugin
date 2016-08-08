@@ -26,7 +26,14 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
 
     def setup() {
         buildFile << """\
-            apply plugin: 'groovy'
+            allprojects {
+                apply plugin: 'groovy'
+                sourceCompatibility = '1.6'
+                targetCompatibility = '1.6'
+                dependencies {
+                    compile 'org.codehaus.groovy:groovy-all:2.3.1'
+                }
+            }
             apply plugin: 'application'
 
             jnlp {
@@ -90,6 +97,40 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
         jar.@href.text() == "lib/${moduleName}.jar"
     }
 
+    def 'jar of project with SNAPSHOT version'() {
+        given:
+        version = "1.0-SNAPSHOT"
+        runTasksSuccessfully(':generateJnlp', ':copyJars')
+        jnlp = jnlp()
+
+        when:
+        def jar = jnlp.resources.jar.find { it.@href =~ /$moduleName/ }
+
+        then:
+        jar.@version.text() == ''
+
+        and:
+        jar.@href.text() == "lib/${moduleName}__V1.0-SNAPSHOT.jar"
+    }
+
+    def 'jar of subproject with SNAPSHOT version'() {
+        given:
+        addSubproject("subproject")
+        buildFile << "dependencies { compile project(':subproject') }"
+        version = "1.0-SNAPSHOT"
+        runTasksSuccessfully(':generateJnlp', ':copyJars')
+        jnlp = jnlp()
+
+        when:
+        def jar = jnlp.resources.jar.find { it.@href =~ 'subproject' }
+
+        then:
+        jar.@version.text() == ''
+
+        and:
+        jar.@href.text() == "lib/subproject__V1.0-SNAPSHOT.jar"
+    }
+
     def 'property jnlp.versionEnabled is set to true'() {
         when:
         def property = jnlp.resources.property.find { it.@name == 'jnlp.versionEnabled' }
@@ -102,8 +143,8 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
     def 'jars are copied'() {
         expect:
         directory('build/jnlp/lib').list { file, name -> name.endsWith '.jar' }.sort() == [
-            'groovy-all__V2.3.1.jar',
-            "${moduleName}__V1.0.jar"
+                'groovy-all__V2.3.1.jar',
+                "${moduleName}__V1.0.jar"
         ]
     }
 

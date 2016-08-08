@@ -15,12 +15,13 @@
  */
 package de.gliderpilot.gradle.jnlp
 
-import nebula.test.IntegrationSpec
-import spock.lang.Shared
 import spock.lang.Unroll
 
 @Unroll
-class SignJarsIncrementalBuildSpec extends AbstractJnlpIntegrationSpec {
+class SignJarsSpec extends AbstractJnlpIntegrationSpec {
+
+    boolean useVersions = true
+    boolean usePack200 = false
 
     def setup() {
         writeHelloWorld('de.gliderpilot.jnlp.test')
@@ -32,6 +33,10 @@ class SignJarsIncrementalBuildSpec extends AbstractJnlpIntegrationSpec {
             apply plugin: 'application'
             apply plugin: 'de.gliderpilot.jnlp'
 
+            jnlp {
+                useVersions = $useVersions
+                usePack200 = $usePack200
+            }
             repositories {
                 jcenter()
             }
@@ -65,6 +70,25 @@ class SignJarsIncrementalBuildSpec extends AbstractJnlpIntegrationSpec {
 
         then:
         !directory('build/jnlp/lib').list().findAll { it.startsWith('jxlayer') }
+    }
+
+    def "snapshot version with useVersions"() {
+        when:
+        version = "1.0-SNAPSHOT"
+        buildWithDependency(null)
+
+        then:
+        directory("build/jnlp/lib").list { file, name -> name.startsWith(moduleName) }.first() == "${moduleName}__V1.0-SNAPSHOT.jar"
+    }
+
+    def "snapshot version without useVersions"() {
+        when:
+        useVersions = false
+        version = "1.0-SNAPSHOT"
+        buildWithDependency(null)
+
+        then:
+        directory("build/jnlp/lib").list { file, name -> name.startsWith(moduleName) }.first() == "${moduleName}__V1.0-SNAPSHOT.jar"
     }
 
 }
