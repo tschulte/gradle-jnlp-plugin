@@ -15,9 +15,7 @@
  */
 package de.gliderpilot.gradle.jnlp
 
-import nebula.test.IntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.util.jar.JarFile
 
@@ -46,7 +44,7 @@ class SignJarsRemoveNamedEntriesSpec extends AbstractJnlpIntegrationSpec {
 
     def 'manifest has no named entry "org/apache/commons/httpclient"'() {
         given:
-        def manifest = new JarFile(file('build/jnlp/lib/commons-httpclient__V3.1.jar')).manifest
+        def manifest = new JarFile(file('build/jnlp/lib/commons-httpclient__V3.1-myalias.jar')).manifest
 
         expect:
         !manifest.entries.containsKey("org/apache/commons/httpclient")

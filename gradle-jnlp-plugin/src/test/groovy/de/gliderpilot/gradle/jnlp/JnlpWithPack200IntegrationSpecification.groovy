@@ -65,6 +65,6 @@ class JnlpWithPack200IntegrationSpecification extends AbstractJnlpIntegrationSpe
 
     def 'jar file is packed with pack200'() {
         expect:
-        directory("build/jnlp/lib").list().sort() == ['jxlayer__V3.0.4.jar.pack.gz', "${moduleName}__V1.0.jar.pack.gz"].sort()
+        directory("build/jnlp/lib").list().sort() == ['jxlayer__V3.0.4-myalias.jar.pack.gz', "${moduleName}__V1.0-myalias.jar.pack.gz"].sort()
     }
 }

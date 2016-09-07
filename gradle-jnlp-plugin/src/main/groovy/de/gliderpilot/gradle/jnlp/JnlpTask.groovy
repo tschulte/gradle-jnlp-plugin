@@ -15,16 +15,15 @@
  */
 package de.gliderpilot.gradle.jnlp
 
-import java.util.jar.JarFile
-
 import groovy.xml.MarkupBuilder
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+
+import java.util.jar.JarFile
 
 class JnlpTask extends DefaultTask {
 
@@ -41,7 +40,7 @@ class JnlpTask extends DefaultTask {
         def outputFile = jnlpFile
         outputFile.parentFile.eachFileMatch(~/.*\.jnlp/) { it.delete() }
         MarkupBuilder xml = new MarkupBuilder(outputFile.newPrintWriter('UTF-8'))
-        xml.mkp.xmlDeclaration(version:'1.0', encoding: 'UTF-8')
+        xml.mkp.xmlDeclaration(version: '1.0', encoding: 'UTF-8')
         xml.jnlp(project.jnlp.jnlpParams) {
             delegate.with project.jnlp.withXmlClosure
             resources {
@@ -62,7 +61,9 @@ class JnlpTask extends DefaultTask {
     }
 
     Map<String, String> jarParams(File file) {
-        ResolvedArtifact artifact = from.resolvedConfiguration.resolvedArtifacts.find { it.extension == 'jar' && it.file.name == file.name }
+        ResolvedArtifact artifact = from.resolvedConfiguration.resolvedArtifacts.find {
+            it.extension == 'jar' && it.file.name == file.name
+        }
         Map<String, String> jarParams = artifact ? jarParams(artifact) : [href: "lib/${file.name}"]
         if (containsMainClass(file))
             jarParams.main = 'true'
@@ -73,14 +74,13 @@ class JnlpTask extends DefaultTask {
         String version = artifact.moduleVersion.id.version
         if (project.jnlp.useVersions && !version.endsWith("-SNAPSHOT"))
             if (artifact.classifier == null)
-                [href: "lib/${artifact.name}.jar", version: "${version}"]
+                [href: "lib/${artifact.name}.jar", version: "${version}${project.jnlp.versionAppendix.call()}"]
             else
-                [href: "lib/${artifact.name}-${artifact.classifier}.jar", version: "${version}"]
+                [href: "lib/${artifact.name}-${artifact.classifier}.jar", version: "${version}${project.jnlp.versionAppendix.call()}"]
+        else if (artifact.classifier == null)
+            [href: "lib/${artifact.name}__V${version}${project.jnlp.versionAppendix.call()}.jar"]
         else
-            if (artifact.classifier == null)
-                [href: "lib/${artifact.name}__V${version}.jar"]
-            else
-                [href: "lib/${artifact.name}-${artifact.classifier}__V${version}.jar"]
+            [href: "lib/${artifact.name}-${artifact.classifier}__V${version}${project.jnlp.versionAppendix.call()}.jar"]
     }
 
     boolean containsMainClass(File file) {

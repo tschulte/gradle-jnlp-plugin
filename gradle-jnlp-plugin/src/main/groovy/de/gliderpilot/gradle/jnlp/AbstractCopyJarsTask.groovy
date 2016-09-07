@@ -30,12 +30,14 @@ abstract class AbstractCopyJarsTask extends DefaultTask {
     File into
 
     String newName(String fileName) {
-        ResolvedArtifact artifact = from.resolvedConfiguration.resolvedArtifacts.find { it.extension == 'jar' && it.file.name == fileName }
+        ResolvedArtifact artifact = from.resolvedConfiguration.resolvedArtifacts.find {
+            it.extension == 'jar' && it.file.name == fileName
+        }
         if (artifact != null) {
             if (artifact.classifier == null)
-                "${artifact.name}__V${artifact.moduleVersion.id.version}.jar"
+                "${artifact.name}__V${artifact.moduleVersion.id.version}${project.jnlp.versionAppendix.call()}.jar"
             else
-                "${artifact.name}-${artifact.classifier}__V${artifact.moduleVersion.id.version}.jar"
+                "${artifact.name}-${artifact.classifier}__V${artifact.moduleVersion.id.version}${project.jnlp.versionAppendix.call()}.jar"
         } else {
             fileName
         }

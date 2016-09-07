@@ -16,11 +16,9 @@
 package de.gliderpilot.gradle.jnlp
 
 import org.gradle.api.JavaVersion
-import groovy.xml.*
+import org.gradle.api.Project
 
 import javax.inject.Inject
-
-import org.gradle.api.Project
 
 class GradleJnlpPluginExtension {
 
@@ -39,7 +37,6 @@ class GradleJnlpPluginExtension {
     String mainClassName
 
 
-
     Map<String, String> jnlpParams = [spec: '7.0', href: 'launch.jnlp']
     Map<String, String> j2seParams
 
@@ -52,6 +49,10 @@ class GradleJnlpPluginExtension {
     Closure withXmlClosure
     Closure desc
 
+    Closure versionAppendix = {
+        signJarParams.alias ? "-${signJarParams.alias}" : ""
+    }
+
     @Inject
     GradleJnlpPluginExtension(GradleJnlpPlugin plugin, Project project) {
         this.plugin = plugin
@@ -60,9 +61,9 @@ class GradleJnlpPluginExtension {
             jnlpParams.version = project.version
         }
         signJarAddedManifestEntries = [
-            'Codebase': '*',
-            'Permissions': 'all-permissions',
-            'Application-Name': "${project.name}"
+                'Codebase'        : '*',
+                'Permissions'     : 'all-permissions',
+                'Application-Name': "${project.name}"
         ]
         withXmlClosure = {
             information {

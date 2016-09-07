@@ -78,7 +78,7 @@ class SignJarsSpec extends AbstractJnlpIntegrationSpec {
         buildWithDependency(null)
 
         then:
-        directory("build/jnlp/lib").list { file, name -> name.startsWith(moduleName) }.first() == "${moduleName}__V1.0-SNAPSHOT.jar"
+        directory("build/jnlp/lib").list { file, name -> name.startsWith(moduleName) }.first() == "${moduleName}__V1.0-SNAPSHOT-myalias.jar"
     }
 
     def "snapshot version without useVersions"() {
@@ -88,7 +88,7 @@ class SignJarsSpec extends AbstractJnlpIntegrationSpec {
         buildWithDependency(null)
 
         then:
-        directory("build/jnlp/lib").list { file, name -> name.startsWith(moduleName) }.first() == "${moduleName}__V1.0-SNAPSHOT.jar"
+        directory("build/jnlp/lib").list { file, name -> name.startsWith(moduleName) }.first() == "${moduleName}__V1.0-SNAPSHOT-myalias.jar"
     }
 
 }

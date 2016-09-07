@@ -16,8 +16,6 @@
 package de.gliderpilot.gradle.jnlp.war
 
 import de.gliderpilot.gradle.jnlp.AbstractJnlpIntegrationSpec
-import nebula.test.IntegrationSpec
-import spock.lang.Ignore
 
 class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
 
@@ -144,7 +142,7 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         runTasksSuccessfully("build")
         fileExists("war/build/libs/war-1.0.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
-        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias.jar.pack.gz")
     }
 
     def "war can also contain old version and rename works"() {
@@ -169,8 +167,8 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
         fileExists("war/build/tmp/warContent/launch-1.0.jnlp")
-        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0.jar.pack.gz")
-        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.1.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.1-myalias.jar.pack.gz")
     }
 
     def "incremental build works"() {
@@ -230,10 +228,10 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         !fileExists("war/build/tmp/warContent/launch-1.0.jnlp")
         !fileExists("war/build/tmp/warContent/launch-1.1.jnlp")
         fileExists("war/build/tmp/warContent/launch-1.2.jnlp")
-        !fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0.jar.pack.gz")
-        !fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.1.jar.pack.gz")
-        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.2.jar.pack.gz")
-        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.3.jar.pack.gz")
+        !fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias.jar.pack.gz")
+        !fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.1-myalias.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.2-myalias.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.3-myalias.jar.pack.gz")
     }
 
     def "launcher for project can be further refined"() {
@@ -261,7 +259,7 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         runTasksSuccessfully("build")
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch-1.0.jnlp")
-        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias.jar.pack.gz")
     }
 
     def "jardiffs are created"() {
@@ -287,7 +285,7 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         then:
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
-        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0__V1.1.diff.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias__V1.1-myalias.diff.jar.pack.gz")
     }
 
     def "no exception with jardiff and new dependency"() {
@@ -315,7 +313,7 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         then:
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
-        fileExists("war/build/tmp/warContent/lib/sub__V1.1.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/sub__V1.1-myalias.jar.pack.gz")
     }
 
     def "no exception with jardiff and removed dependency"() {
@@ -343,7 +341,7 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         then:
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
-        fileExists("war/build/tmp/warContent/lib/sub__V1.1.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/sub__V1.1-myalias.jar.pack.gz")
     }
 
     def "jardiff from xalan 2.7.1 to 2.7.2 with pack200"() {
@@ -373,9 +371,9 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
         // somehow xalan does not work, no pack.gz is created
-        !fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1__V2.7.2.diff.jar.pack.gz")
+        !fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1-myalias__V2.7.2-myalias.diff.jar.pack.gz")
         // but the diff.jar is bigger than the v2.7.2.jar.pack.gz, therefore no diff
-        !fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1__V2.7.2.diff.jar")
+        !fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1-myalias__V2.7.2-myalias.diff.jar")
     }
 
     def "jardiff from xalan 2.7.1 to 2.7.2 without pack200"() {
@@ -406,7 +404,7 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
         // diff.jar is smaller than v2.7.2.jar
-        fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1__V2.7.2.diff.jar")
+        fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1-myalias__V2.7.2-myalias.diff.jar")
     }
 
 }
