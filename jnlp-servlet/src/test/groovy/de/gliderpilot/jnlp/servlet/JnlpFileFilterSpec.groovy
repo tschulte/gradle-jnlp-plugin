@@ -15,11 +15,6 @@
  */
 package de.gliderpilot.jnlp.servlet
 
-import spock.lang.Specification
-
-/**
- * Created by tobias on 4/12/15.
- */
 class JnlpFileFilterSpec extends AbstractJnlpServletSpec {
 
     def "special values are substituted in jnlp files"() {

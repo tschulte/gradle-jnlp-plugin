@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 package de.gliderpilot.jnlp.servlet
-/**
- * Created by tobias on 4/12/15.
- */
+
 class VersionBasedDownloadSpec extends AbstractJnlpServletSpec {
 
     def "download does work for #file in version #version"() {

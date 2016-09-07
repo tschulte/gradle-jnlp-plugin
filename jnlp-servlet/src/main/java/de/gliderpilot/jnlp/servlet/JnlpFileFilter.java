@@ -25,9 +25,6 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Created by tobias on 5/14/15.
- */
 @WebFilter(filterName = "jnlp-file-filter", urlPatterns = {"*.jnlp"})
 public class JnlpFileFilter implements Filter {
 
@@ -38,7 +35,7 @@ public class JnlpFileFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        JnlpFileResponseWrapper responseWrapper = new JnlpFileResponseWrapper((HttpServletRequest)request, (HttpServletResponse)response);
+        JnlpFileResponseWrapper responseWrapper = new JnlpFileResponseWrapper((HttpServletRequest) request, (HttpServletResponse) response);
         chain.doFilter(request, responseWrapper);
         responseWrapper.getOutputStream().writeLine();
     }

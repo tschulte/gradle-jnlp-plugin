@@ -26,9 +26,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
-/**
- * Created by tobias on 3/29/15.
- */
 public class JnlpRequestHandler {
 
     protected final ServletContext context;

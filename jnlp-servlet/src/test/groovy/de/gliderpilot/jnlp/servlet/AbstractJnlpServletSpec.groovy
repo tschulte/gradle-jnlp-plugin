@@ -17,9 +17,6 @@ package de.gliderpilot.jnlp.servlet
 
 import spock.lang.Specification
 
-/**
- * Created by tobias on 4/12/15.
- */
 abstract class AbstractJnlpServletSpec extends Specification {
 
     protected HttpURLConnection download(String file) {

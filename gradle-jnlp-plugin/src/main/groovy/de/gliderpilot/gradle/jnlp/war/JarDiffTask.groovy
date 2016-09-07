@@ -24,9 +24,6 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
-/**
- * Created by tobias on 5/10/15.
- */
 class JarDiffTask extends DefaultTask {
 
     @InputFiles

@@ -17,9 +17,6 @@ package de.gliderpilot.jnlp.servlet;
 
 import java.net.URL;
 
-/**
- * Created by tobias on 3/29/15.
- */
 public class JnlpResource {
 
     private final URL file;
