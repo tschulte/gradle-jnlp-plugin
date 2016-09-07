@@ -16,11 +16,13 @@
 package de.gliderpilot.gradle.jnlp
 
 import groovyx.gpars.GParsPool
-
-import java.util.jar.*
-
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
 
 
 class SignJarsTask extends AbstractCopyJarsTask {
@@ -108,12 +110,7 @@ class SignJarsTask extends AbstractCopyJarsTask {
 
 
     int threadCount() {
-        int threadCount = project.gradle.startParameter.parallelThreadCount
-        if (threadCount == -1)
-            return Runtime.runtime.availableProcessors()
-        if (threadCount == 0)
-            return 1
-        return threadCount
+        return project.gradle.startParameter.maxWorkerCount
     }
 
 }
