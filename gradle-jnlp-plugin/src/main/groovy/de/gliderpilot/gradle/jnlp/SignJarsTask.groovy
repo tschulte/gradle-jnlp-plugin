@@ -44,9 +44,7 @@ class SignJarsTask extends AbstractCopyJarsTask {
             jarsToSign.eachParallel { jarToSign ->
                 jarToSign = copyUnsignAndAlterManifest(jarToSign)
                 if (project.jnlp.usePack200) {
-                    project.exec {
-                        commandLine "pack200", "--repack", jarToSign
-                    }
+                    JavaHomeAware.exec(project, "pack200", "--repack", jarToSign)
                 }
 
                 // AntBuilder is not thread-safe, therefore we need to create
@@ -57,9 +55,7 @@ class SignJarsTask extends AbstractCopyJarsTask {
                 ant.signjar(signJarParams)
 
                 if (project.jnlp.usePack200) {
-                    project.exec {
-                        commandLine "pack200", "${jarToSign}.pack.gz", jarToSign
-                    }
+                    JavaHomeAware.exec(project, "pack200", "${jarToSign}.pack.gz", jarToSign)
                     project.delete(jarToSign)
                 }
             }

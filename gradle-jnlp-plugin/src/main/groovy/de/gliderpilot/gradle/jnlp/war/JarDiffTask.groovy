@@ -15,6 +15,7 @@
  */
 package de.gliderpilot.gradle.jnlp.war
 
+import de.gliderpilot.gradle.jnlp.JavaHomeAware
 import jnlp.sample.jardiff.JarDiff
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
@@ -54,7 +55,9 @@ class JarDiffTask extends DefaultTask {
 
     @TaskAction
     void createJardiffs() {
-        def toMap = { [file: it, baseName: it.name - ~/__V.*$/, version: it.name.replaceAll(/.*?__V(.*?)\.jar.*/, '$1')] }
+        def toMap = {
+            [file: it, baseName: it.name - ~/__V.*$/, version: it.name.replaceAll(/.*?__V(.*?)\.jar.*/, '$1')]
+        }
         def onlyVersionedJars = { it.name ==~ /.*__V.*\.jar(?:\.pack(?:\.gz)?)?/ }
         def oldFiles = oldVersions.collect {
             project.zipTree(it).filter(onlyVersionedJars).files
@@ -63,9 +66,9 @@ class JarDiffTask extends DefaultTask {
                 .filter(onlyVersionedJars)
                 .collect(toMap)
                 .inject([:]) { map, file ->
-                    map[file.baseName] = file
-                    map
-                }
+            map[file.baseName] = file
+            map
+        }
         oldFiles.each { oldFile ->
             def newFile = newFiles[oldFile.baseName]
             if (newFile && newFile.version != oldFile.version)
@@ -86,12 +89,8 @@ class JarDiffTask extends DefaultTask {
             File diffJarPacked = new File("${diffJar}.pack.gz")
             logger.info("packing $diffJar.name with pack200")
             try {
-                project.exec {
-                    commandLine "pack200", "--repack", diffJar
-                }
-                project.exec {
-                    commandLine "pack200", diffJarPacked, diffJar
-                }
+                JavaHomeAware.exec(project, "pack200", "--repack", diffJar)
+                JavaHomeAware.exec(project, "pack200", diffJarPacked, diffJar)
                 project.delete(diffJar)
                 if (diffJarPacked.size() >= newVersion.file.size()) {
                     // only keep jardiff.pack.gz if smaller than the full file
@@ -116,9 +115,7 @@ class JarDiffTask extends DefaultTask {
         if (file.name.endsWith('.jar'))
             return file
         File jar = new File("$project.buildDir/tmp/jardiff", file.name - '.pack.gz')
-        project.exec {
-            commandLine "unpack200", file, jar
-        }
+        JavaHomeAware.exec(project, "unpack200", file, jar)
         return jar
     }
 
