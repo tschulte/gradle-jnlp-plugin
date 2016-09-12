@@ -78,8 +78,14 @@ class JarDiffTask extends DefaultTask {
         File newFile = getJar(newVersion.file)
         File diffJar = new File(into, "${oldVersion.baseName}__V${oldVersion.version}__V${newVersion.version}.diff.jar")
         logger.info("creating jardiff $diffJar.name")
-        diffJar.withOutputStream { os ->
-            JarDiff.createPatch(oldFile.canonicalPath, newFile.canonicalPath, os, true)
+        try {
+            diffJar.withOutputStream { os ->
+                JarDiff.createPatch(oldFile.canonicalPath, newFile.canonicalPath, os, true)
+            }
+        } catch (e) {
+            logger.warn("failed to create $diffJar.name")
+            project.delete(diffJar)
+            return
         }
         if (newVersion.file.name.endsWith('.pack.gz')) {
             // new file is in pack200 format, therefore do also pack the jardiff
