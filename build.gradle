@@ -31,10 +31,6 @@ allprojects {
     repositories {
         jcenter()
     }
-
-    tasks.withType(Test) {
-        maxParallelForks = gradle.startParameter.maxWorkerCount
-    }
 }
 
 semanticRelease {
