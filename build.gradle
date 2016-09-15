@@ -31,6 +31,10 @@ allprojects {
     repositories {
         jcenter()
     }
+
+    tasks.withType(Test) {
+        maxHeapSize = "512m"
+    }
 }
 
 semanticRelease {
