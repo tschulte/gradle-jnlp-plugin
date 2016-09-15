@@ -5,11 +5,7 @@ addons:
     - git
 language: groovy
 jdk: oraclejdk7
-env:
-  global:
-    - TERM=dumb
-    - GRADLE_OPTS="-Xmx512m"
-    - JAVA_OPTS="-Xmx512m"
+env: TERM=dumb
 cache:
   directories:
   - $HOME/.gradle
