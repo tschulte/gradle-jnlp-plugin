@@ -41,7 +41,9 @@ semanticRelease {
     repo.ghToken = project.ext.ghToken
 }
 
-if (!version.toString().endsWith('-SNAPSHOT'))
-    publish.dependsOn getAllTasks(true).values().flatten().findAll { it.name in ['publishPlugins', 'bintrayUpload'] }
-else if ((System.getenv('TRAVIS_PULL_REQUEST') ?: "false") == "false")
-    publish.dependsOn getAllTasks(true).values().flatten().findAll { it.name in ['artifactoryPublish'] }
+if (!version.toString().endsWith('-SNAPSHOT')) {
+    publish.dependsOn getTasksByName("publishPlugins", true)
+    publish.dependsOn getTasksByName("bintrayUpload", true)
+} else if ((System.getenv('TRAVIS_PULL_REQUEST') ?: "false") == "false") {
+    publish.dependsOn getTasksByName("artifactoryPublish", true)
+}
