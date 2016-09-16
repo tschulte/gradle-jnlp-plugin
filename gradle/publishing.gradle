@@ -80,18 +80,27 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-
-            artifact sourcesJar {
-                classifier "sources"
-            }
-
-            artifact javadocJar {
-                classifier "javadoc"
-            }
+            artifact sourcesJar
+            artifact javadocJar
 
             pom.withXml {
                 asNode().children().last() + pomConfig
             }
         }
+    }
+}
+
+// we cannot directly depend on generatePomFileForMavenJavaPublication in releaseAsset.builtBy
+task generatePomFile(dependsOn: ['generatePomFileForMavenJavaPublication'])
+
+rootProject.semanticRelease {
+    repo {
+        releaseAsset jar
+        releaseAsset sourcesJar
+        releaseAsset javadocJar
+        releaseAsset file("$buildDir/publications/mavenJava/pom-default.xml"),
+                    name: "${name}-${version}.pom",
+                    contentType: "application/x-maven-pom+xml",
+                    builtBy: generatePomFile
     }
 }
