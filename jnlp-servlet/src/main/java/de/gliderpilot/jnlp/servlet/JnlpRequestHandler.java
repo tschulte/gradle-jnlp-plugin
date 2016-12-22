@@ -75,8 +75,14 @@ public class JnlpRequestHandler {
             resp.setHeader("x-java-jnlp-version-id", requestedVersion);
         }
 
-        try (InputStream is = file.openConnection().getInputStream()) {
+        InputStream is = null;
+        try {
+            is = file.openConnection().getInputStream();
             copy(is, resp.getOutputStream());
+        } finally {
+            if (null != is) {
+                is.close();
+            }
         }
     }
 
