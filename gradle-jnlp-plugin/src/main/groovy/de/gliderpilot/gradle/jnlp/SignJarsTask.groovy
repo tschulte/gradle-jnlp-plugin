@@ -16,6 +16,9 @@
 package de.gliderpilot.gradle.jnlp
 
 import groovyx.gpars.GParsPool
+import org.gradle.api.file.DuplicateFileCopyingException
+import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 
@@ -24,9 +27,10 @@ import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
 
-
 class SignJarsTask extends AbstractCopyJarsTask {
 
+    @Input
+    DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
     @TaskAction
     void signJars(IncrementalTaskInputs inputs) {
@@ -64,6 +68,7 @@ class SignJarsTask extends AbstractCopyJarsTask {
 
     File copyUnsignAndAlterManifest(File input) {
         File output = new File(into, newName(input.name))
+        logger.info("Copying " + input + " to " + output)
         JarFile jarFile = new JarFile(input)
         Manifest manifest = jarFile.manifest ?: new Manifest()
         def removeManifestEntries = { pattern, attributes ->
@@ -86,8 +91,21 @@ class SignJarsTask extends AbstractCopyJarsTask {
             manifest.mainAttributes.putValue('Manifest-Version', '1.0')
 
         new JarOutputStream(output.newOutputStream(), manifest).withStream { os ->
+            def entries = [] as Set
             jarFile.entries().each { entry ->
-                if (entry.name != JarFile.MANIFEST_NAME && !(entry.name ==~ "(?i)META-INF/${project.jnlp.signJarFilteredMetaInfFiles}")) {
+                def duplicate = !entries.add(entry.name)
+                if (duplicate && duplicatesStrategy == DuplicatesStrategy.WARN) {
+                    logger.warn("Duplicate entry found in jar: " + output + " entry: " + entry.name)
+                }
+                if (duplicate && duplicatesStrategy == DuplicatesStrategy.FAIL) {
+                    throw new DuplicateFileCopyingException("Duplicate entry found in jar: " + output + " entry: " + entry.name)
+                }
+                if (duplicate && duplicatesStrategy == DuplicatesStrategy.EXCLUDE) {
+                    logger.debug("Ignoring duplicate entry in jar: " + output + " entry: " + entry.name)
+                } else if (entry.name == JarFile.MANIFEST_NAME || entry.name ==~ "(?i)META-INF/${project.jnlp.signJarFilteredMetaInfFiles}") {
+                    logger.debug("Ignoring entry jar: " + output + " entry: " + entry.name)
+                } else {
+                    logger.debug("copying jar: " + input.name + " entry: " + entry.name)
                     os.putNextEntry(new JarEntry(entry.name))
                     os << jarFile.getInputStream(entry)
                     os.closeEntry()
