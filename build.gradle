@@ -34,6 +34,7 @@ allprojects {
 
     tasks.withType(Test) {
         maxHeapSize = "512m"
+        jvmArgs "-XX:MaxPermSize=256m"
     }
 }
 
