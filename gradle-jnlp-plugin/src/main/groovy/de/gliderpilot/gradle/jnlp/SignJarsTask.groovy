@@ -94,25 +94,29 @@ class SignJarsTask extends DefaultTask {
         }
         GParsPool.withPool(threadCount()) {
             jarsToSign.eachParallel { jarToSign ->
-                jarToSign = copyUnsignAndAlterManifest(jarToSign)
-                if (usePack200) {
-                    JavaHomeAware.exec(project, "pack200", "--repack", jarToSign)
-                }
-
-                if (signJarParams) {
-                    // AntBuilder is not thread-safe, therefore we need to create
-                    // a new one for each file
-                    AntBuilder ant = project.createAntBuilder()
-                    def signJarParams = new HashMap(signJarParams)
-                    signJarParams.jar = jarToSign
-                    ant.signjar(signJarParams)
-                }
-
-                if (usePack200) {
-                    JavaHomeAware.exec(project, "pack200", "${jarToSign}.pack.gz", jarToSign)
-                    project.delete(jarToSign)
-                }
+                signJar(jarToSign)
             }
+        }
+    }
+
+    void signJar(File jarToSign) {
+        jarToSign = copyUnsignAndAlterManifest(jarToSign)
+        if (usePack200) {
+            JavaHomeAware.exec(project, "pack200", "--repack", jarToSign)
+        }
+
+        if (signJarParams) {
+            // AntBuilder is not thread-safe, therefore we need to create
+            // a new one for each file
+            AntBuilder ant = project.createAntBuilder()
+            def signJarParams = new HashMap(signJarParams)
+            signJarParams.jar = jarToSign
+            ant.signjar(signJarParams)
+        }
+
+        if (usePack200) {
+            JavaHomeAware.exec(project, "pack200", "${jarToSign}.pack.gz", jarToSign)
+            project.delete(jarToSign)
         }
     }
 
