@@ -33,25 +33,50 @@ class JnlpWithoutJavaPluginIntegrationSpecification extends AbstractJnlpIntegrat
             """.stripIndent()
     }
 
-    def 'generateJnlp task is executed'() {
+    @Unroll
+    def '[gradle #gv] generateJnlp task is executed'() {
+        given:
+        gradleVersion = gv
+
         expect:
         runTasksSuccessfully(':generateJnlp').standardOutput.contains(':generateJnlp')
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'copyJars task is executed'() {
+    @Unroll
+    def '[gradle #gv] copyJars task is executed'() {
+        given:
+        gradleVersion = gv
+
         expect:
         runTasksSuccessfully(':copyJars').standardOutput.contains(':copyJars')
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'jars entry is not empty'() {
+    @Unroll
+    def '[gradle #gv] jars entry is not empty'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('generateJnlp')
 
         then:
         !jnlp().resources.jar.isEmpty()
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'mandatory fields in information block are filled in the jnlp'() {
+    @Unroll
+    def '[gradle #gv] mandatory fields in information block are filled in the jnlp'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('generateJnlp')
         def jnlp = jnlp()
@@ -59,22 +84,39 @@ class JnlpWithoutJavaPluginIntegrationSpecification extends AbstractJnlpIntegrat
         then:
         jnlp.information.title.text() == moduleName
         jnlp.information.vendor.text() == moduleName
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'main-class is set'() {
+    @Unroll
+    def '[gradle #gv] main-class is set'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('generateJnlp')
 
         then:
         jnlp().'application-desc'.@'main-class'.text() == 'griffon.javafx.JavaFXGriffonApplication'
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'main-jar is marked'() {
+    @Unroll
+    def '[gradle #gv] main-jar is marked'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('generateJnlp')
 
         then:
         jnlp().resources.jar.find { it.@href =~ 'griffon-javafx' }.@main.text() == 'true'
+
+        where:
+        gv << gradleVersions
     }
 
 }

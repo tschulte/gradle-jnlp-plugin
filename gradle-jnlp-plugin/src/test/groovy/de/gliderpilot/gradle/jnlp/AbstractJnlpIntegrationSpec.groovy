@@ -22,7 +22,11 @@ import spock.lang.Unroll
 @Unroll
 class AbstractJnlpIntegrationSpec extends IntegrationSpec {
 
+    final static gradleVersions = ["2.4", "3.5", "4.0"]
+
+
     def setup() {
+        classpathFilter = { url -> !url.path.contains("spock")}
         buildFile << '''\
             apply plugin: 'de.gliderpilot.jnlp'
             repositories {

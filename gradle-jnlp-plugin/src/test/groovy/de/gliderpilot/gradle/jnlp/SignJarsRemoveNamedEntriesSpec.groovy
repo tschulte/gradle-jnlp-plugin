@@ -16,6 +16,7 @@
 package de.gliderpilot.gradle.jnlp
 
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import java.util.jar.JarFile
 
@@ -42,12 +43,19 @@ class SignJarsRemoveNamedEntriesSpec extends AbstractJnlpIntegrationSpec {
         runTasksSuccessfully(':createWebstartDir')
     }
 
-    def 'manifest has no named entry "org/apache/commons/httpclient"'() {
+    @Unroll
+    def '[gradle #gv] manifest has no named entry "org/apache/commons/httpclient"'() {
         given:
+        gradleVersion = gv
+
+        and:
         def manifest = new JarFile(file('build/jnlp/lib/commons-httpclient__V3.1-myalias.jar')).manifest
 
         expect:
         !manifest.entries.containsKey("org/apache/commons/httpclient")
+
+        where:
+        gv << gradleVersions
     }
 
 }

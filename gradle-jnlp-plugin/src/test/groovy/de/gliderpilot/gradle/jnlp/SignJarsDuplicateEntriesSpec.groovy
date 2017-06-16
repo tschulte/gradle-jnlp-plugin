@@ -17,6 +17,7 @@ package de.gliderpilot.gradle.jnlp
 
 import org.gradle.api.file.DuplicatesStrategy
 import spock.lang.Issue
+import spock.lang.Unroll
 
 @Issue("https://github.com/tschulte/gradle-jnlp-plugin/issues/37")
 class SignJarsDuplicateEntriesSpec extends AbstractJnlpIntegrationSpec {
@@ -40,41 +41,76 @@ class SignJarsDuplicateEntriesSpec extends AbstractJnlpIntegrationSpec {
         enableJarSigner()
     }
 
-    def 'cannot sign jar without DuplicatesStrategy'() {
+    @Unroll
+    def '[gradle #gv] cannot sign jar without DuplicatesStrategy'() {
+        given:
+        gradleVersion = gv
+
         expect:
         runTasksWithFailure(':createWebstartDir')
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'cannot sign jar with DuplicatesStrategy.INCLUDE'() {
+    @Unroll
+    def '[gradle #gv] cannot sign jar with DuplicatesStrategy.INCLUDE'() {
         given:
+        gradleVersion = gv
+
+        and:
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
         expect:
         runTasksWithFailure(':createWebstartDir')
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'cannot sign jar with DuplicatesStrategy.FAIL'() {
+    @Unroll
+    def '[gradle #gv] cannot sign jar with DuplicatesStrategy.FAIL'() {
         given:
+        gradleVersion = gv
+
+        and:
         duplicatesStrategy = DuplicatesStrategy.FAIL
 
         expect:
         runTasksWithFailure(':createWebstartDir')
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'cannot sign jar with duplicatesStrategy.WARN'() {
+    @Unroll
+    def '[gradle #gv] cannot sign jar with duplicatesStrategy.WARN'() {
         given:
+        gradleVersion = gv
+
+        and:
         duplicatesStrategy = DuplicatesStrategy.WARN
 
         expect:
         runTasksWithFailure(':createWebstartDir')
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'can sign jar with DuplicatesStrategy.EXCLUDE'() {
+    @Unroll
+    def '[gradle #gv] can sign jar with DuplicatesStrategy.EXCLUDE'() {
         given:
+        gradleVersion = gv
+
+        and:
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
         expect:
         runTasksSuccessfully(':createWebstartDir')
+
+        where:
+        gv << gradleVersions
     }
 
     void setDuplicatesStrategy(DuplicatesStrategy duplicatesStrategy) {

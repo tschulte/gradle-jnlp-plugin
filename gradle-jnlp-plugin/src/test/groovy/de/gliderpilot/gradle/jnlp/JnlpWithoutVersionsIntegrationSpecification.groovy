@@ -17,7 +17,6 @@ package de.gliderpilot.gradle.jnlp
 
 import spock.lang.Unroll
 
-@Unroll
 class JnlpWithoutVersionsIntegrationSpecification extends AbstractJnlpIntegrationSpec {
 
     def jnlp
@@ -46,34 +45,66 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractJnlpIntegratio
         jnlp = jnlp()
     }
 
-    def 'jars entry is not empty'() {
+    @Unroll
+    def '[gradle #gv] jars entry is not empty'() {
+        given:
+        gradleVersion = gv
+
         expect:
         !jnlp.resources.jar.isEmpty()
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'j2se element is contains version information'() {
+    @Unroll
+    def '[gradle #gv] j2se element is contains version information'() {
+        given:
+        gradleVersion = gv
+
         expect:
         jnlp.resources.j2se.@version.text() == '1.6'
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'jar groovy-all has version 2.3.1'() {
+    @Unroll
+    def '[gradle #gv] jar groovy-all has version 2.3.1'() {
         given:
+        gradleVersion = gv
+
+        and:
         def jar = jnlp.resources.jar.find { it.@href =~ /groovy-all/ }
 
         expect:
         jar.@href.text() == "lib/groovy-all__V2.3.1.jar"
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'jar of project has version 1.0'() {
+    @Unroll
+    def '[gradle #gv] jar of project has version 1.0'() {
         given:
+        gradleVersion = gv
+
+        and:
         def jar = jnlp.resources.jar.find { it.@href =~ /$moduleName/ }
 
         expect:
         jar.@href.text() == "lib/${moduleName}__V1.0.jar"
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'jar of project with SNAPSHOT version'() {
+    @Unroll
+    def '[gradle #gv] jar of project with SNAPSHOT version'() {
         given:
+        gradleVersion = gv
+
+        and:
         version = "1.0-SNAPSHOT"
         runTasksSuccessfully(':generateJnlp', ':copyJars')
         jnlp = jnlp()
@@ -86,10 +117,17 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractJnlpIntegratio
 
         and:
         jar.@href.text() == "lib/${moduleName}__V1.0-SNAPSHOT.jar"
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'jar of subproject with SNAPSHOT version'() {
+    @Unroll
+    def '[gradle #gv] jar of subproject with SNAPSHOT version'() {
         given:
+        gradleVersion = gv
+
+        and:
         addSubproject("subproject")
         buildFile << "dependencies { compile project(':subproject') }"
         version = "1.0-SNAPSHOT"
@@ -97,13 +135,16 @@ class JnlpWithoutVersionsIntegrationSpecification extends AbstractJnlpIntegratio
         jnlp = jnlp()
 
         when:
-        def jar = jnlp.resources.jar.find { it.@href =~ 'subproject' }
+        def jar = jnlp.resources.jar.find { it.@href.text().startsWith('lib/subproject') }
 
         then:
         jar.@version.text() == ''
 
         and:
         jar.@href.text() == "lib/subproject__V1.0-SNAPSHOT.jar"
+
+        where:
+        gv << gradleVersions
     }
 
 }

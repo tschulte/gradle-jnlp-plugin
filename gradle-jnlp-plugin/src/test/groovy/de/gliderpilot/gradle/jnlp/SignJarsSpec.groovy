@@ -17,7 +17,6 @@ package de.gliderpilot.gradle.jnlp
 
 import spock.lang.Unroll
 
-@Unroll
 class SignJarsSpec extends AbstractJnlpIntegrationSpec {
 
     boolean useVersions = true
@@ -50,7 +49,11 @@ class SignJarsSpec extends AbstractJnlpIntegrationSpec {
         runTasksSuccessfully(':createWebstartDir')
     }
 
-    def 'when version of dependency changes, the old version is removed from the lib directory'() {
+    @Unroll
+    def '[gradle #gv] when version of dependency changes, the old version is removed from the lib directory'() {
+        given:
+        gradleVersion = gv
+
         when:
         buildWithDependency 'org.swinglabs:jxlayer:3.0.3'
 
@@ -59,9 +62,16 @@ class SignJarsSpec extends AbstractJnlpIntegrationSpec {
 
         then:
         directory('build/jnlp/lib').list().findAll { it.startsWith('jxlayer') }.size() == 1
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'when dependency is removed, the old version is removed from the lib directory'() {
+    @Unroll
+    def '[gradle #gv] when dependency is removed, the old version is removed from the lib directory'() {
+        given:
+        gradleVersion = gv
+
         when:
         buildWithDependency 'org.swinglabs:jxlayer:3.0.3'
 
@@ -70,18 +80,32 @@ class SignJarsSpec extends AbstractJnlpIntegrationSpec {
 
         then:
         !directory('build/jnlp/lib').list().findAll { it.startsWith('jxlayer') }
+
+        where:
+        gv << gradleVersions
     }
 
-    def "snapshot version with useVersions"() {
+    @Unroll
+    def '[gradle #gv] snapshot version with useVersions'() {
+        given:
+        gradleVersion = gv
+
         when:
         version = "1.0-SNAPSHOT"
         buildWithDependency(null)
 
         then:
         directory("build/jnlp/lib").list { file, name -> name.startsWith(moduleName) }.first() == "${moduleName}__V1.0-SNAPSHOT-myalias.jar"
+
+        where:
+        gv << gradleVersions
     }
 
-    def "snapshot version without useVersions"() {
+    @Unroll
+    def '[gradle #gv] snapshot version without useVersions'() {
+        given:
+        gradleVersion = gv
+
         when:
         useVersions = false
         version = "1.0-SNAPSHOT"
@@ -89,6 +113,9 @@ class SignJarsSpec extends AbstractJnlpIntegrationSpec {
 
         then:
         directory("build/jnlp/lib").list { file, name -> name.startsWith(moduleName) }.first() == "${moduleName}__V1.0-SNAPSHOT-myalias.jar"
+
+        where:
+        gv << gradleVersions
     }
 
 }

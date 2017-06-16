@@ -18,7 +18,6 @@ package de.gliderpilot.gradle.jnlp
 import nebula.test.functional.ExecutionResult
 import spock.lang.Unroll
 
-@Unroll
 class JnlpWithPack200IntegrationSpecification extends AbstractJnlpIntegrationSpec {
 
     def jnlp
@@ -45,26 +44,54 @@ class JnlpWithPack200IntegrationSpecification extends AbstractJnlpIntegrationSpe
         jnlp = jnlp()
     }
 
-    def 'generateJnlp task is executed'() {
+    @Unroll
+    def '[gradle #gv] generateJnlp task is executed'() {
+        given:
+        gradleVersion = gv
+
         expect:
         executionResult.wasExecuted(':generateJnlp')
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'signJars task is executed'() {
+    @Unroll
+    def '[gradle #gv] signJars task is executed'() {
+        given:
+        gradleVersion = gv
+
         expect:
         executionResult.wasExecuted(':signJars')
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'property jnlp.packEnabled is set to true'() {
+    @Unroll
+    def '[gradle #gv] property jnlp.packEnabled is set to true'() {
+        given:
+        gradleVersion = gv
+
         when:
         def property = jnlp.resources.property.find { it.@name == 'jnlp.packEnabled' }
 
         then:
         property.@value.text() == 'true'
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'jar file is packed with pack200'() {
+    @Unroll
+    def '[gradle #gv] jar file is packed with pack200'() {
+        given:
+        gradleVersion = gv
+
         expect:
         directory("build/jnlp/lib").list().sort() == ['jxlayer__V3.0.4-myalias.jar.pack.gz', "${moduleName}__V1.0-myalias.jar.pack.gz"].sort()
+
+        where:
+        gv << gradleVersions
     }
 }

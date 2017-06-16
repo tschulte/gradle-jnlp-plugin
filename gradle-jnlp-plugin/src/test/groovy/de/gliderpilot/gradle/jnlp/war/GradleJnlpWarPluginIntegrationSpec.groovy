@@ -16,6 +16,7 @@
 package de.gliderpilot.gradle.jnlp.war
 
 import de.gliderpilot.gradle.jnlp.AbstractJnlpIntegrationSpec
+import spock.lang.Unroll
 
 class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
 
@@ -67,15 +68,26 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         version = "1.0"
     }
 
-    def "war contains jnlp-servlet"() {
+    @Unroll
+    def '[gradle #gv] war contains jnlp-servlet'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('build')
 
         then:
         file("war/build/tmp/warContent/WEB-INF/lib/").listFiles({ it.name.startsWith('jnlp-servlet-') } as FileFilter)
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'codebase and href are set to $$codebase and $$name'() {
+    @Unroll
+    def '[gradle #gv] codebase and href are set to $$codebase and $$name'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('build')
         def jnlp = new XmlSlurper().parse(file('war/build/tmp/warContent/launch.jnlp'))
@@ -84,9 +96,16 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         jnlp.@href.text() == '$$name'
         and:
         jnlp.@codebase.text() == '$$codebase'
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'codebase is changed to $$codebase'() {
+    @Unroll
+    def '[gradle #gv] codebase is changed to $$codebase'() {
+        given:
+        gradleVersion = gv
+
         when:
         buildFile << '''\
             jnlp {
@@ -98,9 +117,16 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
 
         then:
         jnlp.@codebase.text() == '$$codebase'
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'codebase and href can be set to different values'() {
+    @Unroll
+    def '[gradle #gv] codebase and href can be set to different values'() {
+        given:
+        gradleVersion = gv
+
         when:
         warBuildFile << '''\
             jnlpWar {
@@ -115,9 +141,16 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         jnlp.@href.text() == '$$codebase$$name'
         and:
         jnlp.@codebase.text() == '$$context'
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'codebase is changed to different value'() {
+    @Unroll
+    def '[gradle #gv] codebase is changed to different value'() {
+        given:
+        gradleVersion = gv
+
         when:
         buildFile << '''\
             jnlp {
@@ -135,17 +168,31 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
 
         then:
         jnlp.@codebase.text() == '$$context'
+
+        where:
+        gv << gradleVersions
     }
 
-    def "war contains webstart files from project"() {
+    @Unroll
+    def '[gradle #gv] war contains webstart files from project'() {
+        given:
+        gradleVersion = gv
+
         expect:
         runTasksSuccessfully("build")
         fileExists("war/build/libs/war-1.0.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
         fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias.jar.pack.gz")
+
+        where:
+        gv << gradleVersions
     }
 
-    def "war can also contain old version and rename works"() {
+    @Unroll
+    def '[gradle #gv] war can also contain old version and rename works'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('build', 'publish')
         version = '1.1'
@@ -169,9 +216,16 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         fileExists("war/build/tmp/warContent/launch-1.0.jnlp")
         fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias.jar.pack.gz")
         fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.1-myalias.jar.pack.gz")
+
+        where:
+        gv << gradleVersions
     }
 
-    def "incremental build works"() {
+    @Unroll
+    def '[gradle #gv] incremental build works'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('build', 'publish')
 
@@ -232,10 +286,17 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         !fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.1-myalias.jar.pack.gz")
         fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.2-myalias.jar.pack.gz")
         fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.3-myalias.jar.pack.gz")
+
+        where:
+        gv << gradleVersions
     }
 
-    def "launcher for project can be further refined"() {
-        setup:
+    @Unroll
+    def '[gradle #gv] launcher for project can be further refined'() {
+        given:
+        gradleVersion = gv
+
+        and:
         runTasksSuccessfully('build', 'publish')
         setVersion("1.1")
 
@@ -260,9 +321,16 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch-1.0.jnlp")
         fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias.jar.pack.gz")
+
+        where:
+        gv << gradleVersions
     }
 
-    def "jardiffs are created"() {
+    @Unroll
+    def '[gradle #gv] jardiffs are created'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('build', 'publish')
         version = '1.1'
@@ -286,9 +354,16 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
         fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias__V1.1-myalias.diff.jar.pack.gz")
+
+        where:
+        gv << gradleVersions
     }
 
-    def "no exception with jardiff and new dependency"() {
+    @Unroll
+    def '[gradle #gv] no exception with jardiff and new dependency'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('build', 'publish')
         version = '1.1'
@@ -314,9 +389,16 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
         fileExists("war/build/tmp/warContent/lib/sub__V1.1-myalias.jar.pack.gz")
+
+        where:
+        gv << gradleVersions
     }
 
-    def "no exception with jardiff and removed dependency"() {
+    @Unroll
+    def '[gradle #gv] no exception with jardiff and removed dependency'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('build', 'publish')
         version = '1.1'
@@ -342,9 +424,16 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
         fileExists("war/build/tmp/warContent/lib/sub__V1.1-myalias.jar.pack.gz")
+
+        where:
+        gv << gradleVersions
     }
 
-    def "jardiff from xalan 2.7.1 to 2.7.2 with pack200"() {
+    @Unroll
+    def '[gradle #gv] jardiff from xalan 2.7.1 to 2.7.2 with pack200'() {
+        given:
+        gradleVersion = gv
+
         when:
         buildFile << "repositories { jcenter() }\n"
         buildFile << "dependencies { runtime 'xalan:xalan:2.7.1' }\n"
@@ -374,9 +463,16 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         !fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1-myalias__V2.7.2-myalias.diff.jar.pack.gz")
         // but the diff.jar is bigger than the v2.7.2.jar.pack.gz, therefore no diff
         !fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1-myalias__V2.7.2-myalias.diff.jar")
+
+        where:
+        gv << gradleVersions
     }
 
-    def "jardiff from xalan 2.7.1 to 2.7.2 without pack200"() {
+    @Unroll
+    def '[gradle #gv] jardiff from xalan 2.7.1 to 2.7.2 without pack200'() {
+        given:
+        gradleVersion = gv
+
         when:
         buildFile << "jnlp.usePack200 = false\n"
         buildFile << "repositories { jcenter() }\n"
@@ -405,6 +501,9 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         fileExists("war/build/tmp/warContent/launch.jnlp")
         // diff.jar is smaller than v2.7.2.jar
         fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1-myalias__V2.7.2-myalias.diff.jar")
+
+        where:
+        gv << gradleVersions
     }
 
 }

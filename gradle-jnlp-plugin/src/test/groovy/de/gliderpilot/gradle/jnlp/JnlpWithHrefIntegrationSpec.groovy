@@ -19,7 +19,6 @@ import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 import spock.lang.Unroll
 
-@Unroll
 class JnlpWithHrefIntegrationSpec extends AbstractJnlpIntegrationSpec {
 
     def setup() {
@@ -41,7 +40,11 @@ class JnlpWithHrefIntegrationSpec extends AbstractJnlpIntegrationSpec {
         writeHelloWorld('de.gliderpilot.jnlp.test')
     }
 
-    def 'target folder does only contain one jnlp after version change'() {
+    @Unroll
+    def '[gradle #gv] target folder does only contain one jnlp after version change'() {
+        given:
+        gradleVersion = gv
+
         when:
         runTasksSuccessfully('generateJnlp')
         version = '1.1'
@@ -50,6 +53,9 @@ class JnlpWithHrefIntegrationSpec extends AbstractJnlpIntegrationSpec {
         then:
         !fileExists('build/jnlp/launch_v1.0.jnlp')
         fileExists('build/jnlp/launch_v1.1.jnlp')
+
+        where:
+        gv << gradleVersions
     }
 
 }

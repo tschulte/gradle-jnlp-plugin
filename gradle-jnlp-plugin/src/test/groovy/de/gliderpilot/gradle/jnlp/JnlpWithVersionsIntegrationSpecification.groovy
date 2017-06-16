@@ -18,7 +18,6 @@ package de.gliderpilot.gradle.jnlp
 import nebula.test.functional.ExecutionResult
 import spock.lang.Unroll
 
-@Unroll
 class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSpec {
 
     def jnlp
@@ -51,32 +50,64 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
         jnlp = jnlp()
     }
 
-    def 'generateJnlp task is executed'() {
+    @Unroll
+    def '[gradle #gv] generateJnlp task is executed'() {
+        given:
+        gradleVersion = gv
+
         expect:
         executionResult.wasExecuted(':generateJnlp')
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'copyJars task is executed'() {
+    @Unroll
+    def '[gradle #gv] copyJars task is executed'() {
+        given:
+        gradleVersion = gv
+
         expect:
         executionResult.wasExecuted(':copyJars')
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'jars entry is not empty'() {
+    @Unroll
+    def '[gradle #gv] jars entry is not empty'() {
+        given:
+        gradleVersion = gv
+
         when:
         def jars = jnlp.resources.jar
 
         then:
         !jars.isEmpty()
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'mandatory fields in information block are filled in the jnlp'() {
+    @Unroll
+    def '[gradle #gv] mandatory fields in information block are filled in the jnlp'() {
+        given:
+        gradleVersion = gv
+
         expect:
         jnlp.information.title.text() == moduleName
         jnlp.information.vendor.text() == moduleName
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'jar groovy-all has version 2.3.1'() {
+    @Unroll
+    def '[gradle #gv] jar groovy-all has version 2.3.1'() {
         given:
+        gradleVersion = gv
+
+        and:
         def jar = jnlp.resources.jar.find { it.@href =~ /groovy-all/ }
 
         expect:
@@ -84,10 +115,17 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
 
         and:
         jar.@href.text() == "lib/groovy-all.jar"
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'jar of project has version 1.0'() {
+    @Unroll
+    def '[gradle #gv] jar of project has version 1.0'() {
         given:
+        gradleVersion = gv
+
+        and:
         def jar = jnlp.resources.jar.find { it.@href =~ /$moduleName/ }
 
         expect:
@@ -95,10 +133,17 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
 
         and:
         jar.@href.text() == "lib/${moduleName}.jar"
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'jar of project with SNAPSHOT version'() {
+    @Unroll
+    def '[gradle #gv] jar of project with SNAPSHOT version'() {
         given:
+        gradleVersion = gv
+
+        and:
         version = "1.0-SNAPSHOT"
         runTasksSuccessfully(':generateJnlp', ':copyJars')
         jnlp = jnlp()
@@ -111,10 +156,17 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
 
         and:
         jar.@href.text() == "lib/${moduleName}__V1.0-SNAPSHOT.jar"
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'jar of subproject with SNAPSHOT version'() {
+    @Unroll
+    def '[gradle #gv] jar of subproject with SNAPSHOT version'() {
         given:
+        gradleVersion = gv
+
+        and:
         addSubproject("subproject")
         buildFile << "dependencies { compile project(':subproject') }"
         version = "1.0-SNAPSHOT"
@@ -122,39 +174,69 @@ class JnlpWithVersionsIntegrationSpecification extends AbstractJnlpIntegrationSp
         jnlp = jnlp()
 
         when:
-        def jar = jnlp.resources.jar.find { it.@href =~ 'subproject' }
+        def jar = jnlp.resources.jar.find { it.@href.text().startsWith('lib/subproject') }
 
         then:
         jar.@version.text() == ''
 
         and:
         jar.@href.text() == "lib/subproject__V1.0-SNAPSHOT.jar"
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'property jnlp.versionEnabled is set to true'() {
+    @Unroll
+    def '[gradle #gv] property jnlp.versionEnabled is set to true'() {
+        given:
+        gradleVersion = gv
+
         when:
         def property = jnlp.resources.property.find { it.@name == 'jnlp.versionEnabled' }
 
         then:
         property.@value.text() == 'true'
 
+        where:
+        gv << gradleVersions
     }
 
-    def 'jars are copied'() {
+    @Unroll
+    def '[gradle #gv] jars are copied'() {
+        given:
+        gradleVersion = gv
+
         expect:
         directory('build/jnlp/lib').list { file, name -> name.endsWith '.jar' }.sort() == [
                 'groovy-all__V2.3.1.jar',
                 "${moduleName}__V1.0.jar"
-        ]
+        ].sort()
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'main-class is set'() {
+    @Unroll
+    def '[gradle #gv] main-class is set'() {
+        given:
+        gradleVersion = gv
+
         expect:
         jnlp.'application-desc'.@'main-class'.text() == 'de.gliderpilot.jnlp.test.HelloWorld'
+
+        where:
+        gv << gradleVersions
     }
 
-    def 'main-jar is marked'() {
+    @Unroll
+    def '[gradle #gv] main-jar is marked'() {
+        given:
+        gradleVersion = gv
+
         expect:
         jnlp.resources.jar.find { it.@href =~ "$moduleName" }.@main.text() == 'true'
+
+        where:
+        gv << gradleVersions
     }
 }
