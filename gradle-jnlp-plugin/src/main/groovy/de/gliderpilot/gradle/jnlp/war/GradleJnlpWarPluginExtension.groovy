@@ -87,14 +87,15 @@ class GradleJnlpWarPluginExtension {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             includeEmptyDirs = false
         }
-        project.war {
-            with launchersSpec
-            doFirst {
-                launchers.values()*.resolve()
-                launchersSpec.eachFile {
-                    it.path = it.path.replaceAll('.*?/(.*)', '$1')
-                }
+        project.tasks.create("configureWar").doLast {
+            launchers.values()*.resolve()
+            launchersSpec.eachFile {
+                it.path = it.path.replaceAll('.*?/(.*)', '$1')
             }
+        }
+        project.war {
+            dependsOn project.tasks.configureWar
+            with launchersSpec
         }
     }
 
