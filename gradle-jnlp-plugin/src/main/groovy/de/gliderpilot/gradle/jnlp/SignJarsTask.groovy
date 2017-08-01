@@ -22,10 +22,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 
-import java.util.jar.JarEntry
-import java.util.jar.JarFile
-import java.util.jar.JarOutputStream
-import java.util.jar.Manifest
+import java.util.jar.*
 
 class SignJarsTask extends AbstractCopyJarsTask {
 
@@ -70,7 +67,15 @@ class SignJarsTask extends AbstractCopyJarsTask {
         File output = new File(into, newName(input.name))
         logger.info("Copying " + input + " to " + output)
         JarFile jarFile = new JarFile(input)
-        Manifest manifest = jarFile.manifest ?: new Manifest()
+        Manifest manifest = new Manifest()
+        if (jarFile.manifest) {
+            // new Manifest(jarFile.manifest) does not create new named attributes, but reuses them. This causes
+            // problems, since we are altering the named attributes
+            manifest.mainAttributes.putAll(jarFile.manifest.mainAttributes)
+            jarFile.manifest.entries.each { key, attributes ->
+                manifest.entries.put(key, new Attributes(attributes))
+            }
+        }
         def removeManifestEntries = { pattern, attributes ->
             def keysToRemove = attributes.keySet().findAll { key -> key.toString() ==~ "(?i)${pattern}" }
             attributes.keySet().removeAll(keysToRemove)
