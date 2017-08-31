@@ -52,6 +52,7 @@ class JarDiffTask extends DefaultTask {
 
     @TaskAction
     void createJardiffs() {
+        project.delete(into.listFiles())
         def toMap = {
             [file: it, baseName: it.name - ~/__V.*$/, version: it.name.replaceAll(/.*?__V(.*?)\.jar.*/, '$1')]
         }

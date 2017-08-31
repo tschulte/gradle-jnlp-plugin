@@ -506,4 +506,55 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         gv << gradleVersions
     }
 
+    @Unroll
+    def '[gradle #gv] incremental jardiff build works'() {
+        given:
+        gradleVersion = gv
+
+        when:
+        runTasksSuccessfully('build', 'publish')
+
+        version = '1.1'
+        runTasksSuccessfully('build', 'publish')
+
+        version = '1.2'
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.0" "$rootProject.group:$rootProject.name:1.0:webstart@zip"
+                }
+                launchers {
+                    "1.2" {
+                        jardiff {
+                            from "1.0"
+                        }
+                    }
+                }
+            }
+            '''
+        runTasksSuccessfully("build")
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.1" "$rootProject.group:$rootProject.name:1.1:webstart@zip"
+                }
+                launchers {
+                    "1.2" {
+                        jardiff {
+                            from "1.1"
+                        }
+                    }
+                }
+            }
+            '''
+        runTasksSuccessfully("build")
+
+        then:
+        !fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias__V1.2-myalias.diff.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.1-myalias__V1.2-myalias.diff.jar.pack.gz")
+
+        where:
+        gv << gradleVersions
+    }
+
 }
