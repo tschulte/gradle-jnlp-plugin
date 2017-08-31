@@ -327,11 +327,48 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
     }
 
     @Unroll
-    def '[gradle #gv] jardiffs are created'() {
+    def '[gradle #gv] jardiffs with pack200 are created'() {
         given:
         gradleVersion = gv
 
         when:
+        runTasksSuccessfully('build', 'publish')
+        version = '1.1'
+        warBuildFile.text = '''\
+            jnlpWar {
+                versions {
+                    "1.0" "$rootProject.group:$rootProject.name:1.0:webstart@zip"
+                }
+                launchers {
+                    "1.1" {
+                        jardiff {
+                            from "1.0"
+                        }
+                    }
+                }
+            }
+            '''
+        def result = runTasksSuccessfully("build")
+
+        then:
+        !result.standardOutput.contains("failed to pack")
+        fileExists("war/build/libs/war-1.1.war")
+        fileExists("war/build/tmp/warContent/launch.jnlp")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias__V1.1-myalias.diff.jar.pack.gz")
+        // but no diff.jar
+        !fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias__V1.1-myalias.diff.jar")
+
+        where:
+        gv << gradleVersions
+    }
+
+    @Unroll
+    def '[gradle #gv] jardiffs without pack200 are created'() {
+        given:
+        gradleVersion = gv
+
+        when:
+        buildFile << "jnlp.usePack200 = false\n"
         runTasksSuccessfully('build', 'publish')
         version = '1.1'
         warBuildFile.text = '''\
@@ -353,7 +390,7 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
         then:
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
-        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias__V1.1-myalias.diff.jar.pack.gz")
+        fileExists("war/build/tmp/warContent/lib/${moduleName}__V1.0-myalias__V1.1-myalias.diff.jar")
 
         where:
         gv << gradleVersions
@@ -454,14 +491,20 @@ class GradleJnlpWarPluginIntegrationSpec extends AbstractJnlpIntegrationSpec {
                 }
             }
             '''
-        runTasksSuccessfully("build")
+        def result = runTasksSuccessfully("build")
 
         then:
         fileExists("war/build/libs/war-1.1.war")
         fileExists("war/build/tmp/warContent/launch.jnlp")
-        // somehow xalan does not work, no pack.gz is created
+        // somehow pack200 of the xalan jardiff does not work with default params
+        // does not even work with java 7
+        System.getProperty("java.specification.version") == "1.7" &&
+            result.standardOutput.contains("failed to create xalan__V2.7.1-myalias__V2.7.2-myalias.diff.jar") ||
+            result.standardOutput.contains("failed to pack xalan__V2.7.1-myalias__V2.7.2-myalias.diff.jar using default params -- retrying with param --effort=0") &&
+            // but the pack200.gz file using --effort=0 is not smaller than the new version .pack.gz
+            result.standardOutput.contains("xalan__V2.7.1-myalias__V2.7.2-myalias.diff.jar.pack.gz is not smaller than xalan__V2.7.2-myalias.jar.pack.gz")
+        // therefore we don't have the diff.jar.pack.gz nor the diff.jar
         !fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1-myalias__V2.7.2-myalias.diff.jar.pack.gz")
-        // but the diff.jar is bigger than the v2.7.2.jar.pack.gz, therefore no diff
         !fileExists("war/build/tmp/warContent/lib/xalan__V2.7.1-myalias__V2.7.2-myalias.diff.jar")
 
         where:

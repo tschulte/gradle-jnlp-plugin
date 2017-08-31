@@ -93,24 +93,32 @@ class JarDiffTask extends DefaultTask {
             File diffJarPacked = new File("${diffJar}.pack.gz")
             logger.info("packing $diffJar.name with pack200")
             try {
-                JavaHomeAware.exec(project, "pack200", "--repack", diffJar)
-                JavaHomeAware.exec(project, "pack200", diffJarPacked, diffJar)
-                project.delete(diffJar)
-                if (diffJarPacked.size() >= newVersion.file.size()) {
-                    // only keep jardiff.pack.gz if smaller than the full file
-                    logger.info("jardiff.pack.gz $diffJarPacked.name is not smaller than $newFile.name")
-                    project.delete(diffJarPacked)
-                }
-                return
+                // do the repack on a tmp file, because this might go wrong and we are stuck with a scrambled file
+                File tmpJar = tmpFile(diffJar)
+                // first repack
+                JavaHomeAware.exec(project, "pack200", "--repack", tmpJar)
+                // because the repacking might have altered the class files, resulting in a security exception
+                // when packing again
+                JavaHomeAware.exec(project, "pack200", diffJarPacked, tmpJar)
             } catch (e) {
+                // there was most probably a security exceptionls
                 // the file may be created and have size 0 -- delete
                 project.delete(diffJarPacked)
-                logger.warn("failed to pack $diffJar.name", e)
+                logger.info("failed to pack $diffJar.name using default params -- retrying with param --effort=0")
+                // use the unaltered diffJar as source, using --effort=0 is save, because it does not alter the class files
+                JavaHomeAware.exec(project, "pack200", "--effort=0", diffJarPacked, diffJar)
             }
+            project.delete(diffJar)
+            if (diffJarPacked.size() >= newVersion.file.size()) {
+                // only keep jardiff.pack.gz if smaller than the full file
+                logger.info("$diffJarPacked.name is not smaller than $newVersion.file.name")
+                project.delete(diffJarPacked)
+            }
+            return
         }
         if (diffJar.size() >= newVersion.file.size()) {
             // only keep jardiff if smaller than the full file
-            logger.info("jardiff $diffJar.name is not smaller than $newFile.name")
+            logger.info("$diffJar.name is not smaller than $newVersion.file.name")
             project.delete(diffJar)
         }
     }
@@ -118,9 +126,16 @@ class JarDiffTask extends DefaultTask {
     File getJar(File file) {
         if (file.name.endsWith('.jar'))
             return file
-        File jar = new File("$project.buildDir/tmp/jardiff", file.name - '.pack.gz')
+        File jar = new File(into.parentFile, file.name - '.pack.gz')
         JavaHomeAware.exec(project, "unpack200", file, jar)
         return jar
     }
 
+    File tmpFile(File file) {
+        project.copy {
+            from file
+            into into.parentFile
+        }
+        return new File(into.parentFile, file.name)
+    }
 }
