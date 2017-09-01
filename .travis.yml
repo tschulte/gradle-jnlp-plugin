@@ -3,6 +3,7 @@ addons:
   apt:
     packages:
     - git
+    - oracle-java7-installer
 language: java
 jdk: oraclejdk7
 env: TERM=dumb
