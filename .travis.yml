@@ -3,12 +3,16 @@ addons:
   apt:
     packages:
     - git
-language: groovy
+language: java
 jdk: oraclejdk7
 env: TERM=dumb
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-  - $HOME/.gradle
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
 # don't build tags -- they would fail due to gradle-git anyway
 branches:
   except:
