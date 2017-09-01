@@ -1,11 +1,6 @@
 sudo: false
-addons:
-  apt:
-    packages:
-    - git
-    - oracle-java7-installer
 language: java
-jdk: oraclejdk7
+jdk: oraclejdk8
 env: TERM=dumb
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
