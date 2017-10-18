@@ -39,24 +39,26 @@ class JnlpTask extends DefaultTask {
     void generateJnlp() {
         def outputFile = jnlpFile
         outputFile.parentFile.eachFileMatch(~/.*\.jnlp/) { it.delete() }
-        MarkupBuilder xml = new MarkupBuilder(outputFile.newPrintWriter('UTF-8'))
-        xml.mkp.xmlDeclaration(version: '1.0', encoding: 'UTF-8')
-        xml.jnlp(project.jnlp.jnlpParams) {
-            delegate.with project.jnlp.withXmlClosure
-            resources {
-                j2se(project.jnlp.j2seParams)
-                from.resolve().findAll { it.name.endsWith('.jar') }.each { File jarFile ->
-                    jar(jarParams(jarFile))
-                }
+        outputFile.withPrintWriter("UTF-8") { printWriter ->
+            MarkupBuilder xml = new MarkupBuilder(printWriter)
+            xml.mkp.xmlDeclaration(version: '1.0', encoding: 'UTF-8')
+            xml.jnlp(project.jnlp.jnlpParams) {
+                delegate.with project.jnlp.withXmlClosure
+                resources {
+                    j2se(project.jnlp.j2seParams)
+                    from.resolve().findAll { it.name.endsWith('.jar') }.each { File jarFile ->
+                        jar(jarParams(jarFile))
+                    }
 
-                // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/avoidingUnnecessaryUpdateChecks.html
-                if (project.jnlp.useVersions)
-                    property name: 'jnlp.versionEnabled', value: 'true'
-                // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/reducingDownloadTime.html
-                if (project.jnlp.usePack200)
-                    property name: 'jnlp.packEnabled', value: 'true'
+                    // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/avoidingUnnecessaryUpdateChecks.html
+                    if (project.jnlp.useVersions)
+                        property name: 'jnlp.versionEnabled', value: 'true'
+                    // see http://docs.oracle.com/javase/tutorial/deployment/deploymentInDepth/reducingDownloadTime.html
+                    if (project.jnlp.usePack200)
+                        property name: 'jnlp.packEnabled', value: 'true'
+                }
+                delegate.with project.jnlp.desc
             }
-            delegate.with project.jnlp.desc
         }
     }
 
@@ -84,7 +86,10 @@ class JnlpTask extends DefaultTask {
     }
 
     boolean containsMainClass(File file) {
-        if (project.jnlp.mainClassName)
-            new JarFile(file).getEntry(project.jnlp.mainClassName.replace('.', '/') + '.class')
+        if (project.jnlp.mainClassName) {
+            new JarFile(file).withCloseable {
+                it.getEntry(project.jnlp.mainClassName.replace('.', '/') + '.class')
+            }
+        }
     }
 }
