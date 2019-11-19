@@ -41,9 +41,10 @@ class SignJarsTask extends AbstractCopyJarsTask {
         inputs.removed {
             deleteOutputFile(it.file.name)
         }
+        jarsToSign = jarsToSign.collectEntries { jarToSign -> [(jarToSign): newName(jarToSign.name)] }
         GParsPool.withPool(threadCount()) {
-            jarsToSign.eachParallel { jarToSign ->
-                jarToSign = copyUnsignAndAlterManifest(jarToSign)
+            jarsToSign.eachParallel { jarToSign, newName ->
+                jarToSign = copyUnsignAndAlterManifest(jarToSign, newName)
                 if (project.jnlp.usePack200) {
                     JavaHomeAware.exec(project, "pack200", "--repack", jarToSign)
                 }
@@ -63,8 +64,8 @@ class SignJarsTask extends AbstractCopyJarsTask {
         }
     }
 
-    File copyUnsignAndAlterManifest(File input) {
-        File output = new File(into, newName(input.name))
+    File copyUnsignAndAlterManifest(File input, String newName) {
+        File output = new File(into, newName)
         logger.info("Copying " + input + " to " + output)
         JarFile jarFile = new JarFile(input)
         Manifest manifest = new Manifest()
