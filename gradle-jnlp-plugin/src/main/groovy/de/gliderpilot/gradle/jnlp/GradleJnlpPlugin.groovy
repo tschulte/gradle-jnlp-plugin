@@ -47,7 +47,12 @@ class GradleJnlpPlugin implements Plugin<Project> {
         }
         project.plugins.withId('java') {
             // if plugin java is applied use the runtime configuration
-            project.configurations.jnlp.extendsFrom project.configurations.runtime
+            def configurationNames = project.configurations.names
+            if (configurationNames.contains('runtimeOnly')) {
+                project.configurations.jnlp.extendsFrom project.configurations.runtimeOnly
+            } else if (configurationNames.contains('runtime')) {
+                project.configurations.jnlp.extendsFrom project.configurations.runtime
+            }
             // plus the project itself
             project.dependencies.jnlp project
         }
