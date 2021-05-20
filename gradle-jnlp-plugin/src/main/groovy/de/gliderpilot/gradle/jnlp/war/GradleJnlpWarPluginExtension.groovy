@@ -69,6 +69,8 @@ class GradleJnlpWarPluginExtension {
     // key is the launcher, value is the jardiff task
     Map<Configuration, Task> jardiffTasks = [:].withDefault { configuration ->
         def task = project.task("create${configuration.name.capitalize()}Jardiffs", type: JarDiffTask) {
+            group = 'jnlp-war'
+            description = "Create the Jardiff files for configuration ${configuration.name}"
             into "$project.buildDir/tmp/jardiff/$configuration.name"
             newVersion configuration
         }

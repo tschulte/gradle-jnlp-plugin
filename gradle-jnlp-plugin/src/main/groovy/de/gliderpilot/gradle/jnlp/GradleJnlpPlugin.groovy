@@ -29,19 +29,27 @@ class GradleJnlpPlugin implements Plugin<Project> {
         project.configurations.maybeCreate('jnlp')
 
         project.tasks.create('generateJnlp', JnlpTask) {
+            group = 'jnlp'
+            description = 'Generate the jnlp file'
             from = project.configurations.jnlp
         }
         project.tasks.create('copyJars', CopyJarsTask) {
+            group = 'jnlp'
+            description = 'Copy the jars to the lib folder'
             onlyIf { !project.jnlp.signJarParams }
             from = project.configurations.jnlp
             into new File(project.buildDir, jnlp.destinationPath + '/lib')
         }
         project.tasks.create('signJars', SignJarsTask) {
+            group = 'jnlp'
+            description = 'Sign the jar files'
             onlyIf { project.jnlp.signJarParams }
             from = project.configurations.jnlp
             into new File(project.buildDir, jnlp.destinationPath + '/lib')
         }
         project.tasks.create('createWebstartDir') {
+            group = 'jnlp'
+            description = 'Generate the complete webstart directory structure'
             dependsOn 'generateJnlp', 'copyJars', 'signJars'
             outputs.dir new File(project.buildDir, jnlp.destinationPath)
         }
