@@ -36,10 +36,14 @@ class SignJarsTask extends AbstractCopyJarsTask {
 
         def jarsToSign = []
         inputs.outOfDate {
-            jarsToSign << it.file
+            if (it.file.name.endsWith('.jar')) {
+                jarsToSign << it.file
+            }
         }
         inputs.removed {
-            deleteOutputFile(it.file.name)
+            if (it.file.name.endsWith('.jar')) {
+                deleteOutputFile(it.file.name)
+            }
         }
         jarsToSign = jarsToSign.collectEntries { jarToSign -> [(jarToSign): newName(jarToSign.name)] }
         GParsPool.withPool(threadCount()) {

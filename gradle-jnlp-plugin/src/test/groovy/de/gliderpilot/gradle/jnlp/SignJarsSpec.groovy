@@ -40,13 +40,28 @@ class SignJarsSpec extends AbstractJnlpIntegrationSpec {
                 jcenter()
             }
             dependencies {
-                ${dependency ? "compile '$dependency'" : ""}
+                ${dependency ? "compile '$dependency', {transitive=true}" : ""}
             }
             mainClassName = 'de.gliderpilot.jnlp.test.HelloWorld'
             """.stripIndent()
         enableJarSigner()
 
         runTasksSuccessfully(':createWebstartDir')
+    }
+
+    @Unroll
+    def '[gradle #gv] works with @pom dependencies'() {
+        given:
+        gradleVersion = gv
+
+        when:
+        buildWithDependency 'org.codehaus.groovy:groovy-all:3.0.7@pom'
+
+        then:
+        directory('build/jnlp/lib').list().findAll { it.startsWith('groovy') }
+
+        where:
+        gv << gradleVersions.findAll { it != '2.4' } // @pom dependencies do not work with gradle 2.4
     }
 
     @Unroll
