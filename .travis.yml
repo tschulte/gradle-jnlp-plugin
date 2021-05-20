@@ -1,14 +1,11 @@
 sudo: false
-language: java
-jdk: openjdk8
+language: groovy
+jdk:
+  - openjdk8
 env: TERM=dumb
-before_cache:
-  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
+    - $HOME/.gradle
 # don't build tags -- they would fail due to gradle-git anyway
 branches:
   except:
@@ -18,13 +15,11 @@ before_install:
   - git config user.email "tobias.schulte@gliderpilot.de"
   - git config user.name "Travis-CI"
   - git config url.https://.insteadOf git://
-  - git checkout -qf $TRAVIS_BRANCH
+  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then git checkout -qf $TRAVIS_BRANCH; fi
 # skip default gradlew assemble
 install:
   - echo "skip default gradlew assemble"
 script:
-- '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && ./gradlew release -Dorg.ajoberstar.grgit.auth.username=${GH_TOKEN} -Dorg.ajoberstar.grgit.auth.password -Dgradle.publish.key=${GRADLE_KEY} -Dgradle.publish.secret=${GRADLE_SECRET} --info --stacktrace || ./gradlew build --info --stacktrace'
-
-
+  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && ./gradlew release -Dorg.ajoberstar.grgit.auth.username=${GH_TOKEN} -Dorg.ajoberstar.grgit.auth.password -Dgradle.publish.key=${GRADLE_KEY} -Dgradle.publish.secret=${GRADLE_SECRET} --info --stacktrace || ./gradlew build --info --stacktrace'
 after_success:
   - ./gradlew jacocoTestReport coveralls
