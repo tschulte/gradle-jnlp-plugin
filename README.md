@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/tschulte/gradle-jnlp-plugin.svg?branch=master)](https://travis-ci.org/tschulte/gradle-jnlp-plugin)
+[![Build Status](https://api.travis-ci.com/tschulte/gradle-jnlp-plugin.svg?branch=master)](https://travis-ci.com/github/tschulte/gradle-jnlp-plugin)
 [![Coverage Status](https://coveralls.io/repos/tschulte/gradle-jnlp-plugin/badge.png?branch=master)](https://coveralls.io/r/tschulte/gradle-jnlp-plugin?branch=master)
 
 Gradle plugin to create webstart files
@@ -48,5 +48,5 @@ followed by
 
 which will create webstart files at build/jnlp.
 
-To launch the application with webstart, call
-javaws build/jnlp/launch.jnlp (you must first set your java security settings to medium, or use a real certificate).
+To launch the application with webstart, call javaws build/jnlp/launch.jnlp (you must first set your java
+security settings to medium, or use a real certificate).
